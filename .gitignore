@@ -1,0 +1,6 @@
+*.swo
+*.swp
+tags
+tinylog
+.DS_Store
+
