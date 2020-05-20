@@ -14,7 +14,7 @@ const (
 func NewTinyLogger(out io.Writer, module string) TinyLogger {
 	mPrefix := ""
 	if module != "" {
-		mPrefix = fmt.Sprintf("[%s]\t", mPrefix)
+		mPrefix = fmt.Sprintf("[%s]\t", module)
 	}
 	return &tinyLogger{
 		debug: log.New(out, fmt.Sprintf("[debug]\t%s", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
