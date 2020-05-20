@@ -2,19 +2,19 @@ package tinylog
 
 import "io"
 
-func NewTinyLoggerFabric(out io.Writer) TinyLoggerFabric {
-	return &tinyLoggerFabric{
+func NewTinyLoggerFactory(out io.Writer) TinyLoggerFactory {
+	return &tinyLoggerFactory{
 		out:     out,
 		loggers: make(map[string]TinyLogger),
 	}
 }
 
-type tinyLoggerFabric struct {
+type tinyLoggerFactory struct {
 	out     io.Writer
 	loggers map[string]TinyLogger
 }
 
-func (tlf *tinyLoggerFabric) GetLogger(module string) TinyLogger {
+func (tlf *tinyLoggerFactory) GetLogger(module string) TinyLogger {
 	l, ok := tlf.loggers[module]
 	if ok {
 		return l

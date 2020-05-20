@@ -15,6 +15,6 @@ type TinyLogger interface {
 	Fatalf(format string, v ...interface{})
 }
 
-type TinyLoggerFabric interface {
+type TinyLoggerFactory interface {
 	GetLogger(module string) TinyLogger
 }
