@@ -38,43 +38,43 @@ type tinyLogger struct {
 }
 
 func (tl *tinyLogger) Debug(v ...interface{}) {
-	tl.debug.Output(3, fmt.Sprintln(v...))
+	tl.debug.Output(4, fmt.Sprintln(v...))
 }
 
 func (tl *tinyLogger) Debugf(format string, v ...interface{}) {
-	tl.debug.Output(3, fmt.Sprintf(format, v...))
+	tl.debug.Output(4, fmt.Sprintf(format, v...))
 }
 
 func (tl *tinyLogger) Info(v ...interface{}) {
-	tl.info.Output(3, fmt.Sprintln(v...))
+	tl.info.Output(4, fmt.Sprintln(v...))
 }
 
 func (tl *tinyLogger) Infof(format string, v ...interface{}) {
-	tl.info.Output(3, fmt.Sprintf(format, v...))
+	tl.info.Output(4, fmt.Sprintf(format, v...))
 }
 
 func (tl *tinyLogger) Warn(v ...interface{}) {
-	tl.warn.Output(3, fmt.Sprintln(v...))
+	tl.warn.Output(4, fmt.Sprintln(v...))
 }
 
 func (tl *tinyLogger) Warnf(format string, v ...interface{}) {
-	tl.warn.Output(3, fmt.Sprintf(format, v...))
+	tl.warn.Output(4, fmt.Sprintf(format, v...))
 }
 
 func (tl *tinyLogger) Err(v ...interface{}) {
-	tl.err.Output(3, fmt.Sprintln(v...))
+	tl.err.Output(4, fmt.Sprintln(v...))
 }
 
 func (tl *tinyLogger) Errf(format string, v ...interface{}) {
-	tl.err.Output(3, fmt.Sprintf(format, v...))
+	tl.err.Output(4, fmt.Sprintf(format, v...))
 }
 
 func (tl *tinyLogger) Fatal(v ...interface{}) {
-	tl.fatal.Output(3, fmt.Sprintln(v...))
+	tl.fatal.Output(4, fmt.Sprintln(v...))
 	os.Exit(1)
 }
 
 func (tl *tinyLogger) Fatalf(format string, v ...interface{}) {
-	tl.fatal.Output(3, fmt.Sprintf(format, v...))
+	tl.fatal.Output(4, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
