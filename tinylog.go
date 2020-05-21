@@ -6,6 +6,7 @@ const (
 	Warn
 	Err
 	Fatal
+	None
 )
 
 type LogLevelSetter interface {
