@@ -9,7 +9,7 @@ const (
 )
 
 type LogLevelSetter interface {
-	SetLogLevel(lovel int)
+	SetLogLevel(level int)
 }
 
 type TinyLogger interface {
