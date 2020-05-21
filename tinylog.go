@@ -1,8 +1,19 @@
 package tinylog
 
-import ()
+const (
+	Debug = iota
+	Info
+	Warn
+	Err
+	Fatal
+)
+
+type LogLevelSetter interface {
+	SetLogLevel(lovel int)
+}
 
 type TinyLogger interface {
+	LogLevelSetter
 	Debug(v ...interface{})
 	Debugf(format string, v ...interface{})
 	Info(v ...interface{})
@@ -16,5 +27,6 @@ type TinyLogger interface {
 }
 
 type TinyLoggerFactory interface {
+	LogLevelSetter
 	GetLogger(module string) TinyLogger
 }
