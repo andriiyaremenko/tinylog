@@ -14,14 +14,14 @@ const (
 func NewTinyLogger(out io.Writer, module string) TinyLogger {
 	mPrefix := ""
 	if module != "" {
-		mPrefix = fmt.Sprintf("[%s]\t", module)
+		mPrefix = fmt.Sprintf("[%s]", module)
 	}
 	return &tinyLogger{
-		debug:    log.New(out, fmt.Sprintf("[debug]\t%s", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
-		info:     log.New(out, fmt.Sprintf("[info]\t%s", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
-		warn:     log.New(out, fmt.Sprintf("[warn]\t%s", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
-		err:      log.New(out, fmt.Sprintf("[err]\t%s", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
-		fatal:    log.New(out, fmt.Sprintf("[fatal]\t%s", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		debug:    log.New(out, fmt.Sprintf("[debug]\t%s\t", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		info:     log.New(out, fmt.Sprintf("[info]\t%s\t", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		warn:     log.New(out, fmt.Sprintf("[warn]\t%s\t", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		err:      log.New(out, fmt.Sprintf("[err]\t%s\t", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		fatal:    log.New(out, fmt.Sprintf("[fatal]\t%s\t", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
 		logLevel: Info,
 	}
 }
