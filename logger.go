@@ -95,18 +95,18 @@ func (tl *tinyLogger) Warnf(format string, v ...interface{}) {
 	tl.warn.Output(2, fmt.Sprintf(format, v...))
 }
 
-func (tl *tinyLogger) Err(v ...interface{}) {
+func (tl *tinyLogger) Error(v ...interface{}) {
 	tl.mu.RLock()
-	if tl.logLevel > Err {
+	if tl.logLevel > Error {
 		return
 	}
 	tl.mu.RUnlock()
 	tl.err.Output(2, fmt.Sprintln(v...))
 }
 
-func (tl *tinyLogger) Errf(format string, v ...interface{}) {
+func (tl *tinyLogger) Errorf(format string, v ...interface{}) {
 	tl.mu.RLock()
-	if tl.logLevel > Err {
+	if tl.logLevel > Error {
 		return
 	}
 	tl.mu.RUnlock()

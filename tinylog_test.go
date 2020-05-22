@@ -47,10 +47,10 @@ func TestTemplate(t *testing.T) {
 	for i := 5; i > 0; i-- {
 		l2.Info("Hello World!")
 		l2.Warn("Hello World!")
-		l1.Err("Hello World!")
+		l1.Error("Hello World!")
 		l1.Info("Hello World!")
 		l3.Warn("Hello World!")
-		l3.Err("Hello World!")
+		l3.Error("Hello World!")
 		l3.Info("Hello World!")
 	}
 	t.Log(b.String())
@@ -83,14 +83,14 @@ func TestWarnLogLevel(t *testing.T) {
 func TestErrLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
 	l := NewTinyLogger(b, NilModule)
-	l.SetLogLevel(Err)
+	l.SetLogLevel(Error)
 	l.Debug("test")
 	l.Info("test")
 	l.Warn("test")
 	got := b.String()
 	want := ""
 	if got != want {
-		t.Errorf("got %q, want %q; LogLevel: %d", got, want, Err)
+		t.Errorf("got %q, want %q; LogLevel: %d", got, want, Error)
 	}
 }
 
@@ -101,7 +101,7 @@ func TestFatalLogLevel(t *testing.T) {
 	l.Debug("test")
 	l.Info("test")
 	l.Warn("test")
-	l.Err("test")
+	l.Error("test")
 	got := b.String()
 	want := ""
 	if got != want {
@@ -117,7 +117,7 @@ func TestNoneLogLevel(t *testing.T) {
 		l.Debug("test")
 		l.Info("test")
 		l.Warn("test")
-		l.Err("test")
+		l.Error("test")
 		l.Fatal("test")
 		return
 	}
@@ -182,10 +182,10 @@ func TestWarn(t *testing.T) {
 	}
 }
 
-func TestErr(t *testing.T) {
+func TestError(t *testing.T) {
 	b := new(bytes.Buffer)
 	l := NewTinyLogger(b, NilModule)
-	l.Err("test")
+	l.Error("test")
 	got := b.String()
 	want := `\[error\]`
 	ok, err := regexp.MatchString(want, got)
@@ -193,7 +193,7 @@ func TestErr(t *testing.T) {
 		t.Error(err)
 	}
 	if !ok {
-		t.Errorf(`l.Err(test) = %q, want "[error]..."`, got)
+		t.Errorf(`l.Error(test) = %q, want "[error]..."`, got)
 	}
 }
 
