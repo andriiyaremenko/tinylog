@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	ZeroModule = ""
+	NilModule = ""
 )
 
 func NewTinyLogger(out io.Writer, module string) TinyLogger {
 	mPrefix := ""
 	if module != "" {
-		mPrefix = fmt.Sprintf("[%s] ", module)
+		mPrefix = fmt.Sprintf("|%s| ", module)
 	}
 	return &tinyLogger{
 		debug:    log.New(out, fmt.Sprintf("[debug]\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),

@@ -26,11 +26,21 @@ func (cw *concurrentWriter) String() string {
 	return cw.b.String()
 }
 
+func testTestTinyLoggerFactoryRace(t *testing.T, got, pattern, want string) {
+	ok, err := regexp.MatchString(pattern, got)
+	if err != nil {
+		t.Error(err)
+	}
+	if !ok {
+		t.Errorf(`%s not found in resulting output`, want)
+	}
+}
+
 func TestTemplate(t *testing.T) {
 	b := new(bytes.Buffer)
 	b.Write([]byte("\n"))
 	lf := NewTinyLoggerFactory(b)
-	l1 := lf.GetLogger(ZeroModule)
+	l1 := lf.GetLogger(NilModule)
 	l2 := lf.GetLogger("TestMedium")
 	l3 := lf.GetLogger("TestLooooooooong")
 	l1.Info("Hello World!")
@@ -48,7 +58,7 @@ func TestTemplate(t *testing.T) {
 
 func TestDefaultLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, ZeroModule)
+	l := NewTinyLogger(b, NilModule)
 	l.Debug("test")
 	got := b.String()
 	want := ""
@@ -59,7 +69,7 @@ func TestDefaultLogLevel(t *testing.T) {
 
 func TestWarnLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, ZeroModule)
+	l := NewTinyLogger(b, NilModule)
 	l.SetLogLevel(Warn)
 	l.Debug("test")
 	l.Info("test")
@@ -72,7 +82,7 @@ func TestWarnLogLevel(t *testing.T) {
 
 func TestErrLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, ZeroModule)
+	l := NewTinyLogger(b, NilModule)
 	l.SetLogLevel(Err)
 	l.Debug("test")
 	l.Info("test")
@@ -86,7 +96,7 @@ func TestErrLogLevel(t *testing.T) {
 
 func TestFatalLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, ZeroModule)
+	l := NewTinyLogger(b, NilModule)
 	l.SetLogLevel(Fatal)
 	l.Debug("test")
 	l.Info("test")
@@ -102,7 +112,7 @@ func TestFatalLogLevel(t *testing.T) {
 func TestNoneLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
 	if os.Getenv("BE_CRASHER") == "1" {
-		l := NewTinyLogger(b, ZeroModule)
+		l := NewTinyLogger(b, NilModule)
 		l.SetLogLevel(None)
 		l.Debug("test")
 		l.Info("test")
@@ -128,7 +138,7 @@ func TestNoneLogLevel(t *testing.T) {
 
 func TestDebug(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, ZeroModule)
+	l := NewTinyLogger(b, NilModule)
 	l.SetLogLevel(Debug)
 	l.Debug("test")
 	got := b.String()
@@ -144,7 +154,7 @@ func TestDebug(t *testing.T) {
 
 func TestInfo(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, ZeroModule)
+	l := NewTinyLogger(b, NilModule)
 	l.Info("test")
 	got := b.String()
 	want := `\[info\]`
@@ -159,7 +169,7 @@ func TestInfo(t *testing.T) {
 
 func TestWarn(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, ZeroModule)
+	l := NewTinyLogger(b, NilModule)
 	l.Warn("test")
 	got := b.String()
 	want := `\[warn\]`
@@ -174,7 +184,7 @@ func TestWarn(t *testing.T) {
 
 func TestErr(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, ZeroModule)
+	l := NewTinyLogger(b, NilModule)
 	l.Err("test")
 	got := b.String()
 	want := `\[error\]`
@@ -230,18 +240,8 @@ func TestTinyLoggerFactoryRace(t *testing.T) {
 	wg.Wait()
 	got := b.String()
 
-	testTestTinyLoggerFactoryRace(t, got, `\[Test\]`, "[Test]")
-	testTestTinyLoggerFactoryRace(t, got, `\[Test1\]`, "[Test1]")
-	testTestTinyLoggerFactoryRace(t, got, `\[Test2\]`, "[Test2]")
-	testTestTinyLoggerFactoryRace(t, got, `\[Test3\]`, "[Test3]")
-}
-
-func testTestTinyLoggerFactoryRace(t *testing.T, got, pattern, want string) {
-	ok, err := regexp.MatchString(pattern, got)
-	if err != nil {
-		t.Error(err)
-	}
-	if !ok {
-		t.Errorf(`%s not found in resulting output`, want)
-	}
+	testTestTinyLoggerFactoryRace(t, got, `\|Test\|`, "|Test|")
+	testTestTinyLoggerFactoryRace(t, got, `\|Test1\|`, "|Test1|")
+	testTestTinyLoggerFactoryRace(t, got, `\|Test2\|`, "|Test2|")
+	testTestTinyLoggerFactoryRace(t, got, `\|Test3\|`, "|Test3|")
 }
