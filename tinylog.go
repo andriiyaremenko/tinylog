@@ -1,7 +1,9 @@
 package tinylog
 
+type LogLevel int
+
 const (
-	Debug = iota
+	Debug LogLevel = iota
 	Info
 	Warn
 	Error
@@ -10,7 +12,7 @@ const (
 )
 
 type LogLevelSetter interface {
-	SetLogLevel(level int)
+	SetLogLevel(level LogLevel)
 }
 
 type TinyLogger interface {

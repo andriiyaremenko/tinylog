@@ -17,7 +17,7 @@ type tinyLoggerFactory struct {
 	mu       sync.Mutex
 	out      io.Writer
 	loggers  map[string]TinyLogger
-	logLevel int
+	logLevel LogLevel
 }
 
 func (tlf *tinyLoggerFactory) GetLogger(module string) TinyLogger {
@@ -33,7 +33,7 @@ func (tlf *tinyLoggerFactory) GetLogger(module string) TinyLogger {
 	return l
 }
 
-func (tlf *tinyLoggerFactory) SetLogLevel(level int) {
+func (tlf *tinyLoggerFactory) SetLogLevel(level LogLevel) {
 	tlf.mu.Lock()
 	defer tlf.mu.Unlock()
 	tlf.logLevel = level

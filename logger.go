@@ -38,7 +38,7 @@ type tinyLogger struct {
 	warn     *log.Logger
 	err      *log.Logger
 	fatal    *log.Logger
-	logLevel int
+	logLevel LogLevel
 }
 
 func (tl *tinyLogger) Debug(v ...interface{}) {
@@ -133,7 +133,7 @@ func (tl *tinyLogger) Fatalf(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
-func (tl *tinyLogger) SetLogLevel(level int) {
+func (tl *tinyLogger) SetLogLevel(level LogLevel) {
 	tl.mu.Lock()
 	tl.logLevel = level
 	tl.mu.Unlock()
