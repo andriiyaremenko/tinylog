@@ -12,7 +12,7 @@ const (
 	NilModule = ""
 )
 
-func NewTinyLogger(out io.Writer, module string) TinyLogger {
+func NewTinyLogger(out io.Writer, module string) Logger {
 	mPrefix := ""
 	if module != "" {
 		mPrefix = fmt.Sprintf("|%s| ", module)
@@ -27,7 +27,7 @@ func NewTinyLogger(out io.Writer, module string) TinyLogger {
 	}
 }
 
-func NewConsoleTinyLogger(module string) TinyLogger {
+func NewConsoleTinyLogger(module string) Logger {
 	return NewTinyLogger(os.Stderr, module)
 }
 

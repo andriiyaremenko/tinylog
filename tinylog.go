@@ -15,7 +15,7 @@ type LogLevelSetter interface {
 	SetLogLevel(level LogLevel)
 }
 
-type TinyLogger interface {
+type Logger interface {
 	LogLevelSetter
 	Debug(v ...interface{})
 	Debugf(format string, v ...interface{})
@@ -29,7 +29,7 @@ type TinyLogger interface {
 	Fatalf(format string, v ...interface{})
 }
 
-type TinyLoggerFactory interface {
+type LoggerFactory interface {
 	LogLevelSetter
-	GetLogger(module string) TinyLogger
+	GetLogger(module string) Logger
 }

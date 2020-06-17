@@ -5,10 +5,10 @@ import (
 	"sync"
 )
 
-func NewTinyLoggerFactory(out io.Writer) TinyLoggerFactory {
+func NewTinyLoggerFactory(out io.Writer) LoggerFactory {
 	return &tinyLoggerFactory{
 		out:      out,
-		loggers:  make(map[string]TinyLogger),
+		loggers:  make(map[string]Logger),
 		logLevel: Info,
 	}
 }
@@ -16,11 +16,11 @@ func NewTinyLoggerFactory(out io.Writer) TinyLoggerFactory {
 type tinyLoggerFactory struct {
 	mu       sync.Mutex
 	out      io.Writer
-	loggers  map[string]TinyLogger
+	loggers  map[string]Logger
 	logLevel LogLevel
 }
 
-func (tlf *tinyLoggerFactory) GetLogger(module string) TinyLogger {
+func (tlf *tinyLoggerFactory) GetLogger(module string) Logger {
 	tlf.mu.Lock()
 	defer tlf.mu.Unlock()
 	l, ok := tlf.loggers[module]
