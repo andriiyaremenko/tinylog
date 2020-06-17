@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	levelRegex     = regexp.MustCompile(`\[\w+\]`)
+	levelRegex     = regexp.MustCompile(`^[A-Z]+`)
 	moduleRegex    = regexp.MustCompile(`\|\w+\|`)
 	timeStampRegex = regexp.MustCompile(`\d{4}\/\d{2}/\d{2} \d{2}:\d{2}:\d{2}`)
 	locationRegex  = regexp.MustCompile(`\w+\.go:\d+`)

@@ -18,11 +18,11 @@ func NewTinyLogger(out io.Writer, module string) TinyLogger {
 		mPrefix = fmt.Sprintf("|%s| ", module)
 	}
 	return &tinyLogger{
-		debug:    log.New(out, fmt.Sprintf("[debug]\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
-		info:     log.New(out, fmt.Sprintf("[info]\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
-		warn:     log.New(out, fmt.Sprintf("[warn]\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
-		err:      log.New(out, fmt.Sprintf("[error]\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
-		fatal:    log.New(out, fmt.Sprintf("[fatal]\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		debug:    log.New(out, fmt.Sprintf("DEBUG\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		info:     log.New(out, fmt.Sprintf("INFO\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		warn:     log.New(out, fmt.Sprintf("WARN\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		err:      log.New(out, fmt.Sprintf("ERROR\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
+		fatal:    log.New(out, fmt.Sprintf("FATAL\t%s:: ", mPrefix), log.Ldate|log.Ltime|log.Lshortfile),
 		logLevel: Info,
 	}
 }

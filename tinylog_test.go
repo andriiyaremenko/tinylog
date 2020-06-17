@@ -142,7 +142,7 @@ func TestDebug(t *testing.T) {
 	l.SetLogLevel(Debug)
 	l.Debug("test")
 	got := b.String()
-	want := `\[debug\]`
+	want := `DEBUG`
 	ok, err := regexp.MatchString(want, got)
 	if err != nil {
 		t.Error(err)
@@ -157,7 +157,7 @@ func TestInfo(t *testing.T) {
 	l := NewTinyLogger(b, NilModule)
 	l.Info("test")
 	got := b.String()
-	want := `\[info\]`
+	want := `INFO`
 	ok, err := regexp.MatchString(want, got)
 	if err != nil {
 		t.Error(err)
@@ -172,7 +172,7 @@ func TestWarn(t *testing.T) {
 	l := NewTinyLogger(b, NilModule)
 	l.Warn("test")
 	got := b.String()
-	want := `\[warn\]`
+	want := `WARN`
 	ok, err := regexp.MatchString(want, got)
 	if err != nil {
 		t.Error(err)
@@ -187,7 +187,7 @@ func TestError(t *testing.T) {
 	l := NewTinyLogger(b, NilModule)
 	l.Error("test")
 	got := b.String()
-	want := `\[error\]`
+	want := `ERROR`
 	ok, err := regexp.MatchString(want, got)
 	if err != nil {
 		t.Error(err)
