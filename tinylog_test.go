@@ -2,11 +2,13 @@ package tinylog
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"regexp"
 	"sync"
 	"testing"
+	"time"
 )
 
 type concurrentWriter struct {
@@ -26,6 +28,17 @@ func (cw *concurrentWriter) String() string {
 	return cw.b.String()
 }
 
+func checkOutput(t *testing.T, b *bytes.Buffer, wantLevel string) {
+	r := new(Record)
+	err := json.Unmarshal(b.Bytes(), r)
+	if err != nil {
+		t.Error(err)
+	}
+	if r.Level != wantLevel {
+		t.Errorf(`l.Info(test) = %s, want %s`, r.Level, wantLevel)
+	}
+}
+
 func testTestTinyLoggerFactoryRace(t *testing.T, got, pattern, want string) {
 	ok, err := regexp.MatchString(pattern, got)
 	if err != nil {
@@ -39,12 +52,14 @@ func testTestTinyLoggerFactoryRace(t *testing.T, got, pattern, want string) {
 func TestTemplate(t *testing.T) {
 	b := new(bytes.Buffer)
 	b.Write([]byte("\n"))
-	lf := NewTinyLoggerFactory(b)
+	lf := NewTinyLoggerFactory(b, String, time.Stamp)
+	lf.SetLogLevel(Debug)
 	l1 := lf.GetLogger(NilModule)
 	l2 := lf.GetLogger("TestMedium")
 	l3 := lf.GetLogger("TestLooooooooong")
 	l1.Info("Hello World!")
 	for i := 5; i > 0; i-- {
+		l2.Debug("Hello World!")
 		l2.Info("Hello World!")
 		l2.Warn("Hello World!")
 		l1.Error("Hello World!")
@@ -58,7 +73,7 @@ func TestTemplate(t *testing.T) {
 
 func TestDefaultLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, NilModule)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.Debug("test")
 	got := b.String()
 	want := ""
@@ -69,7 +84,7 @@ func TestDefaultLogLevel(t *testing.T) {
 
 func TestWarnLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, NilModule)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.SetLogLevel(Warn)
 	l.Debug("test")
 	l.Info("test")
@@ -82,7 +97,7 @@ func TestWarnLogLevel(t *testing.T) {
 
 func TestErrLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, NilModule)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.SetLogLevel(Error)
 	l.Debug("test")
 	l.Info("test")
@@ -96,7 +111,7 @@ func TestErrLogLevel(t *testing.T) {
 
 func TestFatalLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, NilModule)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.SetLogLevel(Fatal)
 	l.Debug("test")
 	l.Info("test")
@@ -112,7 +127,7 @@ func TestFatalLogLevel(t *testing.T) {
 func TestNoneLogLevel(t *testing.T) {
 	b := new(bytes.Buffer)
 	if os.Getenv("BE_CRASHER") == "1" {
-		l := NewTinyLogger(b, NilModule)
+		l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 		l.SetLogLevel(None)
 		l.Debug("test")
 		l.Info("test")
@@ -138,69 +153,37 @@ func TestNoneLogLevel(t *testing.T) {
 
 func TestDebug(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, NilModule)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.SetLogLevel(Debug)
 	l.Debug("test")
-	got := b.String()
-	want := `DEBUG`
-	ok, err := regexp.MatchString(want, got)
-	if err != nil {
-		t.Error(err)
-	}
-	if !ok {
-		t.Errorf(`l.Debug(test) = %q, want "[debug]..."`, got)
-	}
+	checkOutput(t, b, "DEBUG")
 }
 
 func TestInfo(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, NilModule)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.Info("test")
-	got := b.String()
-	want := `INFO`
-	ok, err := regexp.MatchString(want, got)
-	if err != nil {
-		t.Error(err)
-	}
-	if !ok {
-		t.Errorf(`l.Info(test) = %q, want "[info]..."`, got)
-	}
+	checkOutput(t, b, "INFO")
 }
 
 func TestWarn(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, NilModule)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.Warn("test")
-	got := b.String()
-	want := `WARN`
-	ok, err := regexp.MatchString(want, got)
-	if err != nil {
-		t.Error(err)
-	}
-	if !ok {
-		t.Errorf(`l.Warn(test) = %q, want "[warn]..."`, got)
-	}
+	checkOutput(t, b, "WARN")
 }
 
 func TestError(t *testing.T) {
 	b := new(bytes.Buffer)
-	l := NewTinyLogger(b, NilModule)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.Error("test")
-	got := b.String()
-	want := `ERROR`
-	ok, err := regexp.MatchString(want, got)
-	if err != nil {
-		t.Error(err)
-	}
-	if !ok {
-		t.Errorf(`l.Error(test) = %q, want "[error]..."`, got)
-	}
+	checkOutput(t, b, "ERROR")
 }
 
 func TestTinyLoggerFactoryRace(t *testing.T) {
 	b := &concurrentWriter{b: new(bytes.Buffer)}
 	b.Write([]byte("\n"))
-	lf := NewTinyLoggerFactory(b)
+	lf := NewTinyLoggerFactory(b, String, time.RubyDate)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -240,8 +223,8 @@ func TestTinyLoggerFactoryRace(t *testing.T) {
 	wg.Wait()
 	got := b.String()
 
-	testTestTinyLoggerFactoryRace(t, got, `\|Test\|`, "|Test|")
-	testTestTinyLoggerFactoryRace(t, got, `\|Test1\|`, "|Test1|")
-	testTestTinyLoggerFactoryRace(t, got, `\|Test2\|`, "|Test2|")
-	testTestTinyLoggerFactoryRace(t, got, `\|Test3\|`, "|Test3|")
+	testTestTinyLoggerFactoryRace(t, got, `Test`, "Test")
+	testTestTinyLoggerFactoryRace(t, got, `Test1`, "Test1")
+	testTestTinyLoggerFactoryRace(t, got, `Test2`, "Test2")
+	testTestTinyLoggerFactoryRace(t, got, `Test3`, "Test3")
 }
