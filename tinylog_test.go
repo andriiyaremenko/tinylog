@@ -56,12 +56,15 @@ func TestTemplate(t *testing.T) {
 	lf.SetLogLevel(Debug)
 	l1 := lf.GetLogger(NilModule)
 	l2 := lf.GetLogger("TestMedium")
+	l2.AddTag("user", "me", "cat")
+	l2.AddTag("tool", "tinylog")
 	l3 := lf.GetLogger("TestLooooooooong")
 	l1.Info("Hello World!")
 	for i := 5; i > 0; i-- {
 		l2.Debug("Hello World!")
 		l2.Info("Hello World!")
 		l2.Warn("Hello World!")
+		l2.Error("Hello World!")
 		l1.Error("Hello World!")
 		l1.Info("Hello World!")
 		l3.Warn("Hello World!")
@@ -227,4 +230,19 @@ func TestTinyLoggerFactoryRace(t *testing.T) {
 	testTestTinyLoggerFactoryRace(t, got, `Test1`, "Test1")
 	testTestTinyLoggerFactoryRace(t, got, `Test2`, "Test2")
 	testTestTinyLoggerFactoryRace(t, got, `Test3`, "Test3")
+}
+
+func TestTags(t *testing.T) {
+	b := new(bytes.Buffer)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
+	l.AddTag("user", "me", "cat")
+	l.Info("test")
+	r := new(Record)
+	err := json.Unmarshal(b.Bytes(), r)
+	if err != nil {
+		t.Error(err)
+	}
+	if tags := r.Tags["user"]; r.Message != "test" && len(tags) != 2 {
+		t.Errorf(`l.Debug(test) with Tags "user": ["me", "cat"] = {Message: %s, Tags: %v}, want {Message: "test", Tags: map[user][me cat]}`, r.Message, tags)
+	}
 }

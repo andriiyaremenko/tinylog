@@ -11,12 +11,19 @@ const (
 	None
 )
 
+type Stringer interface {
+	String() string
+}
+
 type LogLevelSetter interface {
 	SetLogLevel(level logLevel)
 }
 
 type Logger interface {
 	LogLevelSetter
+
+	AddTag(key string, value ...string)
+
 	Debug(v ...interface{})
 	Debugf(format string, v ...interface{})
 	Info(v ...interface{})

@@ -35,11 +35,12 @@ const (
 
 func NewTinyLogger(out io.Writer, format format, module, timeFormat string) Logger {
 	return &tinyLogger{
-		logLevel:   Info,
-		module:     module,
 		out:        out,
 		format:     format,
+		module:     module,
 		timeFormat: timeFormat,
+		logLevel:   Info,
+		tags:       make(map[string][]string),
 	}
 }
 
@@ -49,11 +50,18 @@ func NewConsoleTinyLogger(module, timeFormat string) Logger {
 
 type tinyLogger struct {
 	mu         sync.RWMutex
-	logLevel   logLevel
-	module     string
-	timeFormat string
 	out        io.Writer
 	format     format
+	module     string
+	timeFormat string
+	logLevel   logLevel
+	tags       map[string][]string
+}
+
+func (tl *tinyLogger) AddTag(key string, value ...string) {
+	tl.mu.Lock()
+	tl.tags[key] = value
+	tl.mu.Unlock()
 }
 
 func (tl *tinyLogger) Debug(v ...interface{}) {
@@ -223,6 +231,44 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 		bytes = append(bytes, fmt.Sprintf("at %v:%d", file, line)...)
 		bytes = append(bytes, colorReset...)
 		bytes = append(bytes, ' ')
+		if len(tl.tags) > 0 {
+			bytes = append(bytes, colorGray...)
+			bytes = append(bytes, '{')
+		}
+		for k, v := range tl.tags {
+			bytes = append(bytes, colorReset...)
+			bytes = append(bytes, color...)
+			bytes = append(bytes, k...)
+			bytes = append(bytes, colorReset...)
+			bytes = append(bytes, colorGray...)
+			bytes = append(bytes, ':')
+			bytes = append(bytes, colorReset...)
+			bytes = append(bytes, color...)
+			bytes = append(bytes, colorReset...)
+			bytes = append(bytes, colorGray...)
+			bytes = append(bytes, '[')
+			for _, s := range v {
+				bytes = append(bytes, colorReset...)
+				bytes = append(bytes, color...)
+				bytes = append(bytes, s...)
+				bytes = append(bytes, colorReset...)
+				bytes = append(bytes, colorGray...)
+				bytes = append(bytes, ',')
+				bytes = append(bytes, ' ')
+			}
+			bytes = bytes[:len(bytes)-2]
+			bytes = append(bytes, ']')
+			bytes = append(bytes, colorReset...)
+			bytes = append(bytes, colorGray...)
+			bytes = append(bytes, ',')
+			bytes = append(bytes, ' ')
+		}
+		if len(tl.tags) > 0 {
+			bytes = bytes[:len(bytes)-2]
+			bytes = append(bytes, '}')
+			bytes = append(bytes, colorReset...)
+			bytes = append(bytes, ' ')
+		}
 		bytes = append(bytes, color...)
 		bytes = append(bytes, message...)
 		if len(message) == 0 || message[len(message)-1] != '\n' {
@@ -231,11 +277,13 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 		bytes = append(bytes, colorReset...)
 	case JSON:
 		r := Record{
+			LevelCode: int(level),
 			Level:     levelS,
 			Location:  fmt.Sprintf("%v:%d", file, line),
 			Module:    tl.module,
 			TimeStamp: now.Unix(),
 			Message:   message,
+			Tags:      tl.tags,
 		}
 		bytes, err = json.Marshal(r)
 
