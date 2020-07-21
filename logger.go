@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"sort"
 	"sync"
 	"time"
 )
@@ -222,20 +223,32 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 		bytes = append(bytes, color...)
 		bytes = append(bytes, levelS...)
 		bytes = append(bytes, '\t')
+
 		if tl.module != "" {
 			bytes = append(bytes, tl.module...)
 			bytes = append(bytes, ' ')
 		}
+
 		bytes = append(bytes, colorReset...)
 		bytes = append(bytes, colorGray...)
 		bytes = append(bytes, fmt.Sprintf("at %v:%d", file, line)...)
 		bytes = append(bytes, colorReset...)
 		bytes = append(bytes, ' ')
+
 		if len(tl.tags) > 0 {
 			bytes = append(bytes, colorGray...)
 			bytes = append(bytes, '{')
 		}
-		for k, v := range tl.tags {
+
+		var keys []string
+
+		for k := range tl.tags {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+
+		for _, k := range keys {
+			v := tl.tags[k]
 			bytes = append(bytes, colorReset...)
 			bytes = append(bytes, color...)
 			bytes = append(bytes, k...)
@@ -247,6 +260,7 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 			bytes = append(bytes, colorReset...)
 			bytes = append(bytes, colorGray...)
 			bytes = append(bytes, '[')
+
 			for _, s := range v {
 				bytes = append(bytes, colorReset...)
 				bytes = append(bytes, color...)
@@ -256,6 +270,7 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 				bytes = append(bytes, ',')
 				bytes = append(bytes, ' ')
 			}
+
 			bytes = bytes[:len(bytes)-2]
 			bytes = append(bytes, ']')
 			bytes = append(bytes, colorReset...)
@@ -263,6 +278,7 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 			bytes = append(bytes, ',')
 			bytes = append(bytes, ' ')
 		}
+
 		if len(tl.tags) > 0 {
 			bytes = bytes[:len(bytes)-2]
 			bytes = append(bytes, '}')
@@ -271,6 +287,7 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 		}
 		bytes = append(bytes, color...)
 		bytes = append(bytes, message...)
+
 		if len(message) == 0 || message[len(message)-1] != '\n' {
 			bytes = append(bytes, '\n')
 		}
