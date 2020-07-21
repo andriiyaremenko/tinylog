@@ -301,6 +301,9 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 		}
 		bytes = append(bytes, colorReset...)
 	case JSON:
+		if message[len(message)-1] == '\n' {
+			message = message[:len(message)-1]
+		}
 		r := Record{
 			LevelCode: int(level),
 			Level:     levelS,

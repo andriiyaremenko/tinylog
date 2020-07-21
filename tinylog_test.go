@@ -56,11 +56,11 @@ func TestTemplate(t *testing.T) {
 	b.Write([]byte("\n"))
 	lf := NewTinyLoggerFactory(b, String, time.Stamp)
 	lf.SetLogLevel(Debug)
-	l1 := lf.GetLogger(NilModule)
-	l2 := lf.GetLogger("TestMedium")
-	l2.AddTag(ctx, "user", "me", "cat")
+	l1 := lf.GetLogger(ctx, NilModule)
+	l2 := lf.GetLogger(ctx, "TestMedium")
 	l2.AddTag(ctx, "tool", "tinylog")
-	l3 := lf.GetLogger("TestLooooooooong")
+	l2.AddTag(ctx, "user", "me", "cat")
+	l3 := lf.GetLogger(ctx, "TestLooooooooong")
 	l1.Info("Hello World!")
 	for i := 5; i > 0; i-- {
 		l2.Debug("Hello World!")
@@ -186,6 +186,7 @@ func TestError(t *testing.T) {
 }
 
 func TestTinyLoggerFactoryRace(t *testing.T) {
+	ctx := context.TODO()
 	b := &concurrentWriter{b: new(bytes.Buffer)}
 	b.Write([]byte("\n"))
 	lf := NewTinyLoggerFactory(b, String, time.RubyDate)
@@ -193,25 +194,25 @@ func TestTinyLoggerFactoryRace(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		l := lf.GetLogger("Test")
+		l := lf.GetLogger(ctx, "Test")
 		l.Info("Test")
 	}()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		l := lf.GetLogger("Test1")
+		l := lf.GetLogger(ctx, "Test1")
 		l.Info("Test")
 	}()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		l := lf.GetLogger("Test")
+		l := lf.GetLogger(ctx, "Test")
 		l.Info("Test")
 	}()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		l := lf.GetLogger("Test2")
+		l := lf.GetLogger(ctx, "Test2")
 		l.Info("Test")
 	}()
 	wg.Add(1)
@@ -222,7 +223,7 @@ func TestTinyLoggerFactoryRace(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		l := lf.GetLogger("Test3")
+		l := lf.GetLogger(ctx, "Test3")
 		l.Info("Test")
 	}()
 	wg.Wait()
@@ -241,14 +242,15 @@ func TestContextCancelTags(t *testing.T) {
 	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
 	l.AddTag(ctx, "user", "me", "cat")
 	cancel()
+	time.Sleep(time.Millisecond)
 	l.Info("test")
 	r := new(Record)
 	err := json.Unmarshal(b.Bytes(), r)
 	if err != nil {
 		t.Error(err)
 	}
-	if tags := r.Tags["user"]; r.Message != "test" && len(tags) > 2 {
-		t.Errorf(`l.Debug(test) without Tags = {Message: %s, Tags: %v}, want {Message: "test", Tags: []}`, r.Message, tags)
+	if tags := r.Tags["user"]; r.Message != "test" || len(tags) > 0 {
+		t.Errorf(`l.Info(test) without Tags = {Message: "%s", Tags: %v}, want {Message: "test", Tags: []}`, r.Message, tags)
 	}
 }
 
@@ -256,14 +258,37 @@ func TestTags(t *testing.T) {
 	ctx := context.TODO()
 	b := new(bytes.Buffer)
 	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
+	testTags(l, ctx, b, "user", "me", t)
+}
+
+func TestIndependentTagsByContext(t *testing.T) {
+	go func() {
+		ctx := context.TODO()
+		b := new(bytes.Buffer)
+		lf := NewTinyLoggerFactory(b, JSON, time.RubyDate)
+		l := lf.GetLogger(ctx, NilModule)
+		testTags(l, ctx, b, "user", "me", t)
+	}()
+	go func() {
+		ctx := context.TODO()
+		b := new(bytes.Buffer)
+		lf := NewTinyLoggerFactory(b, JSON, time.RubyDate)
+		l := lf.GetLogger(ctx, NilModule)
+		testTags(l, ctx, b, "user", "cat", t)
+	}()
+}
+
+func testTags(l Logger, ctx context.Context, b *bytes.Buffer, key, value string, t *testing.T) {
 	l.AddTag(ctx, "user", "me", "cat")
 	l.Info("test")
+
 	r := new(Record)
-	err := json.Unmarshal(b.Bytes(), r)
-	if err != nil {
+
+	if err := json.Unmarshal(b.Bytes(), r); err != nil {
 		t.Error(err)
 	}
-	if tags := r.Tags["user"]; r.Message != "test" && len(tags) != 2 {
-		t.Errorf(`l.Debug(test) with Tags "user": ["me", "cat"] = {Message: %s, Tags: %v}, want {Message: "test", Tags: map[user][me cat]}`, r.Message, tags)
+
+	if tags := r.Tags[key]; tags[0] != value {
+		t.Errorf(`l.Info(test) with Tags "%s": ["%s"] = {Tags: map[%s]}, want {Tags: map[%s][%s]}`, key, value, tags, key, value)
 	}
 }

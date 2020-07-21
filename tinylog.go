@@ -40,5 +40,5 @@ type Logger interface {
 
 type LoggerFactory interface {
 	LogLevelSetter
-	GetLogger(module string) Logger
+	GetLogger(ctx context.Context, module string) Logger
 }
