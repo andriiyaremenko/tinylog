@@ -1,6 +1,7 @@
 package tinylog
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -59,10 +60,17 @@ type tinyLogger struct {
 	tags       map[string][]string
 }
 
-func (tl *tinyLogger) AddTag(key string, value ...string) {
+func (tl *tinyLogger) AddTag(ctx context.Context, key string, value ...string) {
 	tl.mu.Lock()
 	tl.tags[key] = value
 	tl.mu.Unlock()
+
+	go func() {
+		<-ctx.Done()
+		tl.mu.Lock()
+		tl.tags = make(map[string][]string)
+		tl.mu.Unlock()
+	}()
 }
 
 func (tl *tinyLogger) Debug(v ...interface{}) {

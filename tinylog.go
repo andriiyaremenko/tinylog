@@ -1,5 +1,7 @@
 package tinylog
 
+import "context"
+
 type logLevel int
 
 const (
@@ -22,7 +24,7 @@ type LogLevelSetter interface {
 type Logger interface {
 	LogLevelSetter
 
-	AddTag(key string, value ...string)
+	AddTag(ctx context.Context, key string, value ...string)
 
 	Debug(v ...interface{})
 	Debugf(format string, v ...interface{})

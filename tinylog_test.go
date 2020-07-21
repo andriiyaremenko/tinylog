@@ -2,6 +2,7 @@ package tinylog
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"os"
 	"os/exec"
@@ -50,14 +51,15 @@ func testTestTinyLoggerFactoryRace(t *testing.T, got, pattern, want string) {
 }
 
 func TestTemplate(t *testing.T) {
+	ctx := context.TODO()
 	b := new(bytes.Buffer)
 	b.Write([]byte("\n"))
 	lf := NewTinyLoggerFactory(b, String, time.Stamp)
 	lf.SetLogLevel(Debug)
 	l1 := lf.GetLogger(NilModule)
 	l2 := lf.GetLogger("TestMedium")
-	l2.AddTag("user", "me", "cat")
-	l2.AddTag("tool", "tinylog")
+	l2.AddTag(ctx, "user", "me", "cat")
+	l2.AddTag(ctx, "tool", "tinylog")
 	l3 := lf.GetLogger("TestLooooooooong")
 	l1.Info("Hello World!")
 	for i := 5; i > 0; i-- {
@@ -232,10 +234,29 @@ func TestTinyLoggerFactoryRace(t *testing.T) {
 	testTestTinyLoggerFactoryRace(t, got, `Test3`, "Test3")
 }
 
-func TestTags(t *testing.T) {
+func TestContextCancelTags(t *testing.T) {
+	ctx := context.TODO()
+	ctx, cancel := context.WithCancel(ctx)
 	b := new(bytes.Buffer)
 	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
-	l.AddTag("user", "me", "cat")
+	l.AddTag(ctx, "user", "me", "cat")
+	cancel()
+	l.Info("test")
+	r := new(Record)
+	err := json.Unmarshal(b.Bytes(), r)
+	if err != nil {
+		t.Error(err)
+	}
+	if tags := r.Tags["user"]; r.Message != "test" && len(tags) > 2 {
+		t.Errorf(`l.Debug(test) without Tags = {Message: %s, Tags: %v}, want {Message: "test", Tags: []}`, r.Message, tags)
+	}
+}
+
+func TestTags(t *testing.T) {
+	ctx := context.TODO()
+	b := new(bytes.Buffer)
+	l := NewTinyLogger(b, JSON, NilModule, time.RubyDate)
+	l.AddTag(ctx, "user", "me", "cat")
 	l.Info("test")
 	r := new(Record)
 	err := json.Unmarshal(b.Bytes(), r)
