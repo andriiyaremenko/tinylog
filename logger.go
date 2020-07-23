@@ -147,20 +147,22 @@ func (tl *tinyLogger) Errorf(format string, v ...interface{}) {
 
 func (tl *tinyLogger) Fatal(v ...interface{}) {
 	tl.mu.RLock()
-	defer tl.mu.RUnlock()
 	if tl.logLevel > Fatal {
+		tl.mu.RUnlock()
 		os.Exit(1)
 	}
+	tl.mu.RUnlock()
 	tl.Output(2, fmt.Sprintln(v...), Fatal)
 	os.Exit(1)
 }
 
 func (tl *tinyLogger) Fatalf(format string, v ...interface{}) {
 	tl.mu.RLock()
-	defer tl.mu.RUnlock()
 	if tl.logLevel > Fatal {
+		tl.mu.RUnlock()
 		os.Exit(1)
 	}
+	tl.mu.RUnlock()
 	tl.Output(2, fmt.Sprintf(format, v...), Fatal)
 	os.Exit(1)
 }
