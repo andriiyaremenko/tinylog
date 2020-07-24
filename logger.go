@@ -197,7 +197,7 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 		color = colorYellow
 	case Error:
 		levelS = "ERROR"
-		color = bold + colorPurple
+		color = colorRed
 	case Fatal:
 		levelS = "FATAL"
 		color = bold + colorRed
