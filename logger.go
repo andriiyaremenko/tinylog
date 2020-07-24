@@ -29,6 +29,7 @@ const (
 	colorCyan   = "\033[36m"
 	colorWhite  = "\033[37m"
 	colorGray   = "\033[90m"
+	bold        = "\033[1m"
 )
 
 const (
@@ -196,10 +197,10 @@ func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err
 		color = colorYellow
 	case Error:
 		levelS = "ERROR"
-		color = colorRed
+		color = bold + colorPurple
 	case Fatal:
 		levelS = "FATAL"
-		color = colorPurple
+		color = bold + colorRed
 	}
 
 	tl.mu.Unlock()
