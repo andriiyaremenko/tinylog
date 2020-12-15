@@ -2,14 +2,12 @@ package tinylog
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"runtime"
-	"sort"
 	"sync"
-	"time"
+
+	"github.com/andriiyaremenko/tinylog/formatters"
 )
 
 type format int
@@ -19,52 +17,42 @@ const (
 	JSON
 )
 
-const (
-	ANSIReset       = "\033[0m"
-	ANSIColorRed    = "\033[31m"
-	ANSIColorGreen  = "\033[32m"
-	ANSIColorYellow = "\033[33m"
-	ANSIColorBlue   = "\033[34m"
-	ANSIColorPurple = "\033[35m"
-	ANSIColorCyan   = "\033[36m"
-	ANSIColorWhite  = "\033[37m"
-	ANSIColorGray   = "\033[90m"
-	ANSIFontBold    = "\033[1m"
-
-	ColorDebug = ANSIColorGreen
-	ColorInfo  = ANSIColorCyan
-	ColorWarn  = ANSIColorYellow
-	ColorError = ANSIColorRed
-	ColorFatal = ANSIFontBold + ANSIColorRed
-)
-
-const (
-	NilModule = ""
-)
-
-func NewTinyLogger(out io.Writer, format format, module, timeFormat string) Logger {
+func NewLogger(out io.Writer, formatter formatters.LogFormatter) Logger {
 	return &tinyLogger{
-		out:        out,
-		format:     format,
-		module:     module,
-		timeFormat: timeFormat,
-		logLevel:   Info,
-		tags:       make(map[string][]string),
+		out:       out,
+		formatter: formatter,
+		logLevel:  Info,
+		tags:      make(map[string][]string),
 	}
 }
 
-func NewConsoleTinyLogger(module, timeFormat string) Logger {
-	return NewTinyLogger(os.Stderr, String, module, timeFormat)
+func NewDefaultLogger() Logger {
+	return NewLogger(os.Stderr, formatters.Default())
+}
+
+type fixedLevelLogger struct {
+	l     *tinyLogger
+	level int
+}
+
+func (fll *fixedLevelLogger) Printf(format string, v ...interface{}) {
+	fll.l.Printf(fll.level, format, v...)
+}
+
+func (fll *fixedLevelLogger) Println(v ...interface{}) {
+	fll.l.Println(fll.level, v...)
 }
 
 type tinyLogger struct {
-	mu         sync.RWMutex
-	out        io.Writer
-	format     format
-	module     string
-	timeFormat string
-	logLevel   logLevel
-	tags       map[string][]string
+	mu        sync.RWMutex
+	out       io.Writer
+	formatter formatters.LogFormatter
+	logLevel  int
+	tags      map[string][]string
+}
+
+func (tl *tinyLogger) GetFixedLevel(level int) FixedLevelLogger {
+	return &fixedLevelLogger{tl, level}
 }
 
 func (tl *tinyLogger) AddTag(ctx context.Context, key string, value ...string) {
@@ -80,254 +68,48 @@ func (tl *tinyLogger) AddTag(ctx context.Context, key string, value ...string) {
 	}()
 }
 
-func (tl *tinyLogger) Debug(v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Debug {
-		return
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintln(v...), Debug)
+func (tl *tinyLogger) Printf(level int, format string, v ...interface{}) {
+	tl.print(level, fmt.Sprintf(format, v...))
 }
 
-func (tl *tinyLogger) Debugf(format string, v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Debug {
-		return
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintf(format, v...), Debug)
-}
-
-func (tl *tinyLogger) Info(v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Info {
-		return
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintln(v...), Info)
-}
-
-func (tl *tinyLogger) Infof(format string, v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Info {
-		return
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintf(format, v...), Info)
-}
-
-func (tl *tinyLogger) Warn(v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Warn {
-		return
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintln(v...), Warn)
-}
-
-func (tl *tinyLogger) Warnf(format string, v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Warn {
-		return
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintf(format, v...), Warn)
-}
-
-func (tl *tinyLogger) Error(v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Error {
-		return
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintln(v...), Error)
-}
-
-func (tl *tinyLogger) Errorf(format string, v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Error {
-		return
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintf(format, v...), Error)
-}
-
-func (tl *tinyLogger) Fatal(v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Fatal {
-		tl.mu.RUnlock()
-		os.Exit(1)
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintln(v...), Fatal)
-	os.Exit(1)
+func (tl *tinyLogger) Println(level int, v ...interface{}) {
+	tl.print(level, fmt.Sprintln(v...))
 }
 
 func (tl *tinyLogger) Fatalf(format string, v ...interface{}) {
-	tl.mu.RLock()
-	if tl.logLevel > Fatal {
-		tl.mu.RUnlock()
-		os.Exit(1)
-	}
-	tl.mu.RUnlock()
-	tl.Output(2, fmt.Sprintf(format, v...), Fatal)
+	tl.print(Fatal, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
-func (tl *tinyLogger) SetLogLevel(level logLevel) {
+func (tl *tinyLogger) Fatalln(v ...interface{}) {
+	tl.print(Fatal, fmt.Sprintln(v...))
+	os.Exit(1)
+}
+
+func (tl *tinyLogger) print(level int, message string) {
+	tl.mu.RLock()
+
+	if tl.logLevel > level {
+		tl.mu.RUnlock()
+		return
+	}
+
+	tl.mu.RUnlock()
+	tl.output(level, message, 2)
+}
+
+func (tl *tinyLogger) SetLogLevel(level int) {
 	tl.mu.Lock()
 	tl.logLevel = level
 	tl.mu.Unlock()
 }
 
-func (tl *tinyLogger) Output(calldepth int, message string, level logLevel) (err error) {
-	now := time.Now() // get this early.
-	var color string
-	var levelS string
-	var file string
-	var line int
-	var ok bool
+func (tl *tinyLogger) output(level int, message string, calldepth int) {
+	tl.mu.RLock()
+	bytes := tl.formatter.GetOutput(level, message, tl.tags, calldepth+1)
+	tl.mu.RUnlock()
 
-	tl.mu.Lock()
-	defer tl.mu.Unlock()
-
-	switch level {
-	case Debug:
-		levelS = "DEBUG"
-		color = ColorDebug
-	case Info:
-		levelS = "INFO"
-		color = ColorInfo
-	case Warn:
-		levelS = "WARN"
-		color = ColorWarn
-	case Error:
-		levelS = "ERROR"
-		color = ColorError
-	case Fatal:
-		levelS = "FATAL"
-		color = ColorFatal
+	if _, err := tl.out.Write(bytes); err != nil {
+		fmt.Printf(formatters.PaintText(formatters.ANSIColorRed, fmt.Sprintf("failed write log to io.Writer: %s", err)))
 	}
-
-	tl.mu.Unlock()
-	_, file, line, ok = runtime.Caller(calldepth)
-
-	if !ok {
-		file = "???"
-		line = 0
-	}
-	tl.mu.Lock()
-
-	var bytes []byte
-	switch tl.format {
-	case String:
-		short := file
-
-		for i := len(file) - 1; i > 0; i-- {
-			if file[i] == '/' {
-				short = file[i+1:]
-				break
-			}
-		}
-		file = short
-
-		bytes = append(bytes, ANSIColorGray...)
-		bytes = append(bytes, '[')
-		bytes = append(bytes, now.Format(tl.timeFormat)...)
-		bytes = append(bytes, ']')
-		bytes = append(bytes, ANSIReset...)
-		bytes = append(bytes, ' ')
-		bytes = append(bytes, color...)
-		bytes = append(bytes, levelS...)
-		bytes = append(bytes, '\t')
-
-		if tl.module != "" {
-			bytes = append(bytes, tl.module...)
-			bytes = append(bytes, ' ')
-		}
-
-		bytes = append(bytes, ANSIReset...)
-		bytes = append(bytes, ANSIColorGray...)
-		bytes = append(bytes, fmt.Sprintf("at %v:%d", file, line)...)
-		bytes = append(bytes, ANSIReset...)
-		bytes = append(bytes, ' ')
-
-		if len(tl.tags) > 0 {
-			bytes = append(bytes, ANSIColorGray...)
-			bytes = append(bytes, '{')
-		}
-
-		var keys []string
-
-		for k := range tl.tags {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-
-		for _, k := range keys {
-			v := tl.tags[k]
-			bytes = append(bytes, ANSIReset...)
-			bytes = append(bytes, color...)
-			bytes = append(bytes, k...)
-			bytes = append(bytes, ANSIReset...)
-			bytes = append(bytes, ANSIColorGray...)
-			bytes = append(bytes, ':')
-			bytes = append(bytes, ANSIReset...)
-			bytes = append(bytes, color...)
-			bytes = append(bytes, ANSIReset...)
-			bytes = append(bytes, ANSIColorGray...)
-			bytes = append(bytes, '[')
-
-			for _, s := range v {
-				bytes = append(bytes, ANSIReset...)
-				bytes = append(bytes, color...)
-				bytes = append(bytes, s...)
-				bytes = append(bytes, ANSIReset...)
-				bytes = append(bytes, ANSIColorGray...)
-				bytes = append(bytes, ',')
-				bytes = append(bytes, ' ')
-			}
-
-			bytes = bytes[:len(bytes)-2]
-			bytes = append(bytes, ']')
-			bytes = append(bytes, ANSIReset...)
-			bytes = append(bytes, ANSIColorGray...)
-			bytes = append(bytes, ',')
-			bytes = append(bytes, ' ')
-		}
-
-		if len(tl.tags) > 0 {
-			bytes = bytes[:len(bytes)-2]
-			bytes = append(bytes, '}')
-			bytes = append(bytes, ANSIReset...)
-			bytes = append(bytes, ' ')
-		}
-		bytes = append(bytes, color...)
-		bytes = append(bytes, message...)
-
-		if len(message) == 0 || message[len(message)-1] != '\n' {
-			bytes = append(bytes, '\n')
-		}
-		bytes = append(bytes, ANSIReset...)
-	case JSON:
-		if message[len(message)-1] == '\n' {
-			message = message[:len(message)-1]
-		}
-		r := Record{
-			LevelCode: int(level),
-			Level:     levelS,
-			Location:  fmt.Sprintf("%v:%d", file, line),
-			Module:    tl.module,
-			TimeStamp: now.Unix(),
-			Message:   message,
-			Tags:      tl.tags,
-		}
-		bytes, err = json.Marshal(r)
-
-		if err != nil {
-			return err
-		}
-	}
-	_, err = tl.out.Write(bytes)
-	return err
 }
