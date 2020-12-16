@@ -3,6 +3,7 @@ package formatters
 import (
 	"regexp"
 	"runtime"
+	"unicode/utf8"
 )
 
 type Color string
@@ -29,10 +30,12 @@ const (
 
 var ansiiColorMatch = regexp.MustCompile("\u001B\\[[;\\d]*m")
 
+// Returns text prepended by ANSI color code and appended by ANSI color reset code
 func PaintText(color Color, text string) string {
 	return string(color) + text + string(ANSIReset)
 }
 
+// Returns `[]byte` prepended by ANSI color code and appended by ANSI color reset code
 func PaintBuffer(color Color, text []byte) []byte {
 	var result []byte
 	result = append(result, []byte(color)...)
@@ -41,8 +44,9 @@ func PaintBuffer(color Color, text []byte) []byte {
 	return result
 }
 
+// Returns `utf8.RuneCountInString` of text without ANSI color codes
 func PrintableTextLen(text string) int {
-	return len(ansiiColorMatch.ReplaceAll([]byte(text), []byte("")))
+	return utf8.RuneCountInString(string(ansiiColorMatch.ReplaceAll([]byte(text), []byte(""))))
 }
 
 func getLevelTextAndColor(level int) (string, Color) {

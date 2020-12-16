@@ -13,10 +13,14 @@ const (
 	messageSpace int = 50
 )
 
+// Returns default instance of `Formatter` with `time.RFC822` as `timeFormat`
+// `Formatter` that returns log message in form of colorized plain text rows of fixed length
 func Default() LogFormatter {
 	return New(time.RFC822)
 }
 
+// Returns default instance of `Formatter` with `timeFormat`
+// `Formatter` that returns log message in form of colorized plain text rows of fixed length
 func New(timeFormat string) LogFormatter {
 	return &defaultFormatter{timeFormat: timeFormat}
 }

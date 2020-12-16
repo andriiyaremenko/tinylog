@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// `Formatter` that returns log message in form of JSON
 const JSONFormatter jsonFormatter = "JSONFormatter"
 
 type jsonFormatter string
@@ -17,12 +18,12 @@ func (f jsonFormatter) GetOutput(level int, message string, tags map[string][]st
 	file, line := getFileAndLine(calldepth + 1)
 
 	m := Log{
-		LevelCode:     level,
-		Level:         strings.TrimLeft(levelS, " "),
-		Location:      fmt.Sprintf("%v:%d", file, line),
-		Message:       message,
-		TimeStampUnix: now.Unix(),
-		Tags:          tags}
+		LevelCode: level,
+		Level:     strings.TrimLeft(levelS, " "),
+		Location:  fmt.Sprintf("%v:%d", file, line),
+		Message:   message,
+		DateUnix:  now.Unix(),
+		Tags:      tags}
 
 	b, err := json.Marshal(m)
 

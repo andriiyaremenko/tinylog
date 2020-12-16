@@ -26,12 +26,12 @@ func testJSONFormatterOutput(t *testing.T) {
 	}
 
 	expected := Log{
-		LevelCode:     2,
-		Level:         "INFO",
-		Location:      "json_test.go:21",
-		Message:       "test json",
-		Tags:          tags,
-		TimeStampUnix: now}
+		LevelCode: 2,
+		Level:     "INFO",
+		Location:  "json_test.go:21",
+		Message:   "test json",
+		Tags:      tags,
+		DateUnix:  now}
 
 	assert.EqualValues(expected, *m, "log should contain all fields with correct values")
 }

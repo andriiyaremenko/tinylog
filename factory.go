@@ -9,6 +9,7 @@ import (
 	"github.com/andriiyaremenko/tinylog/formatters"
 )
 
+// Returns new instance of `LoggerFactory` based on `out` and `formatter`
 func NewLoggerFactory(out io.Writer, formatter formatters.LogFormatter) LoggerFactory {
 	return &tinyLoggerFactory{
 		out:       out,
@@ -18,6 +19,7 @@ func NewLoggerFactory(out io.Writer, formatter formatters.LogFormatter) LoggerFa
 	}
 }
 
+// Returns new instance of `LoggerFactory` based on `os.Stderr` as `out` and `formatters.Default()` as `formatter`
 func NewDefaultLoggerFactory() LoggerFactory {
 	return NewLoggerFactory(os.Stderr, formatters.Default())
 }

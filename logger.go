@@ -9,13 +9,7 @@ import (
 	"github.com/andriiyaremenko/tinylog/formatters"
 )
 
-type format int
-
-const (
-	String format = iota
-	JSON
-)
-
+// Returns new instance of `Logger` based on `out` and `formatter`
 func NewLogger(out io.Writer, formatter formatters.LogFormatter) Logger {
 	return &tinyLogger{
 		out:       out,
@@ -25,6 +19,7 @@ func NewLogger(out io.Writer, formatter formatters.LogFormatter) Logger {
 	}
 }
 
+// Returns new instance of `Logger` based on `os.Stderr` as `out` and `formatters.Default()` as `formatter`
 func NewDefaultLogger() Logger {
 	return NewLogger(os.Stderr, formatters.Default())
 }
@@ -48,6 +43,12 @@ type tinyLogger struct {
 	formatter formatters.LogFormatter
 	logLevel  int
 	tags      map[string][]string
+}
+
+func (tl *tinyLogger) SetLogLevel(level int) {
+	tl.mu.Lock()
+	tl.logLevel = level
+	tl.mu.Unlock()
 }
 
 func (tl *tinyLogger) GetFixedLevel(level int) FixedLevelLogger {
@@ -88,12 +89,6 @@ func (tl *tinyLogger) print(level int, message string) {
 
 	tl.mu.RUnlock()
 	tl.output(level, message, 2)
-}
-
-func (tl *tinyLogger) SetLogLevel(level int) {
-	tl.mu.Lock()
-	tl.logLevel = level
-	tl.mu.Unlock()
 }
 
 func (tl *tinyLogger) output(level int, message string, calldepth int) {
