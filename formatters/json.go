@@ -27,7 +27,7 @@ func (f jsonFormatter) GetOutput(level int, message string, tags map[string][]st
 	b, err := json.Marshal(m)
 
 	if err != nil {
-		fmt.Printf(PaintText(ANSIColorRed, fmt.Sprintf("%s: failed write log: %s", f, err)))
+		fmt.Printf(PaintText(ANSIColorRed, fmt.Sprintf("%s: failed to write log: %s", f, err)))
 
 		return []byte("")
 	}

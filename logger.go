@@ -102,6 +102,6 @@ func (tl *tinyLogger) output(level int, message string, calldepth int) {
 	tl.mu.RUnlock()
 
 	if _, err := tl.out.Write(bytes); err != nil {
-		fmt.Printf(formatters.PaintText(formatters.ANSIColorRed, fmt.Sprintf("failed write log to io.Writer: %s", err)))
+		fmt.Printf(formatters.PaintText(formatters.ANSIColorRed, fmt.Sprintf("failed to write log to io.Writer: %s", err)))
 	}
 }
