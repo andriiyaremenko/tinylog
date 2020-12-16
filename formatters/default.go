@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-	"unicode/utf8"
 )
 
 const (
@@ -41,9 +40,9 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 
 	spaceForLevel := len(levelS) + 1
 	spaceForDate := len(dateString) + 1
-	spaceForFile := utf8.RuneCountInString(foundAtString) + 1
+	spaceForFile := PrintableTextLen(foundAtString) + 1
 	spaceForTags := 0
-	messageLength := utf8.RuneCountInString(message)
+	messageLength := PrintableTextLen(message)
 
 	if !printFile {
 		fileSection = ""
@@ -70,7 +69,7 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 		tagsSectionBuilder.WriteString(PaintText(color, k))
 		tagsSectionBuilder.WriteByte('=')
 
-		spaceForTags += utf8.RuneCountInString(k) + 1
+		spaceForTags += PrintableTextLen(k) + 1
 
 		for j, s := range tags[k] {
 			if j > 0 {
@@ -81,7 +80,7 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 
 			tagsSectionBuilder.WriteString(PaintText(color, s))
 
-			spaceForTags += utf8.RuneCountInString(s)
+			spaceForTags += PrintableTextLen(s)
 		}
 	}
 
@@ -122,7 +121,7 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 	var b []byte
 	if messageLength > spaceForMessage || strings.Contains(message, "\n") {
 		for _, messagePart := range splitMessageIntoRows(message, spaceForMessage) {
-			spaceForMessagePart := utf8.RuneCountInString(messagePart)
+			spaceForMessagePart := PrintableTextLen(messagePart)
 			if level == 0 {
 				messagePart = PaintText(ColorTrace, messagePart)
 			}

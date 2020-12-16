@@ -24,7 +24,7 @@ type Logger interface {
 	LogLevelSetter
 
 	GetFixedLevel(level int) FixedLevelLogger
-	AddTag(ctx context.Context, key string, value ...string)
+	AddTag(key string, value ...string)
 
 	Printf(level int, format string, v ...interface{})
 	Println(level int, v ...interface{})

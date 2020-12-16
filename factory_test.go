@@ -31,7 +31,7 @@ func testGetLoggerDiffersPerContext(t *testing.T) {
 	l1 := lf.GetLogger(ctx1)
 	ctx2 := context.Background()
 	l2 := lf.GetLogger(ctx2)
-	l2.AddTag(ctx2, "tag", "serious")
+	l2.AddTag("tag", "serious")
 
 	assert.NotNil(l1, "should return instance of Logger")
 	assert.NotNil(l2, "should return instance of Logger")

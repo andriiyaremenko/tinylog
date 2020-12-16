@@ -1,7 +1,6 @@
 package tinylog
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -55,17 +54,10 @@ func (tl *tinyLogger) GetFixedLevel(level int) FixedLevelLogger {
 	return &fixedLevelLogger{tl, level}
 }
 
-func (tl *tinyLogger) AddTag(ctx context.Context, key string, value ...string) {
+func (tl *tinyLogger) AddTag(key string, value ...string) {
 	tl.mu.Lock()
-	tl.tags[key] = value
+	tl.tags[key] = append(tl.tags[key], value...)
 	tl.mu.Unlock()
-
-	go func() {
-		<-ctx.Done()
-		tl.mu.Lock()
-		tl.tags = make(map[string][]string)
-		tl.mu.Unlock()
-	}()
 }
 
 func (tl *tinyLogger) Printf(level int, format string, v ...interface{}) {

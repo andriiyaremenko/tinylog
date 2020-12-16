@@ -1,6 +1,7 @@
 package formatters
 
 import (
+	"regexp"
 	"runtime"
 )
 
@@ -26,6 +27,8 @@ const (
 	ColorFatal Color = ANSIFontBold + ANSIColorRed
 )
 
+var ansiiColorMatch = regexp.MustCompile("\u001B\\[[;\\d]*m")
+
 func PaintText(color Color, text string) string {
 	return string(color) + text + string(ANSIReset)
 }
@@ -36,6 +39,10 @@ func PaintBuffer(color Color, text []byte) []byte {
 	result = append(result, text...)
 	result = append(result, []byte(ANSIReset)...)
 	return result
+}
+
+func PrintableTextLen(text string) int {
+	return len(ansiiColorMatch.ReplaceAll([]byte(text), []byte("")))
 }
 
 func getLevelTextAndColor(level int) (string, Color) {

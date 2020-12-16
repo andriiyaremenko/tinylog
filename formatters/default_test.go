@@ -3,7 +3,6 @@ package formatters
 import (
 	"strings"
 	"testing"
-	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,15 +15,15 @@ const (
 )
 
 const (
-	lenWithFileWithoutTags int = 211 // length with colors
-	lenDefault             int = 229 // length with colors
+	lenWithFileWithoutTags int = 175 // length with colors
+	lenDefault             int = 175 // length with colors
 )
 
 func TestDefaultLoggerFormatter(t *testing.T) {
 	t.Run("GetOutput returns plain text rows", testGetOutputReturnsRows)
-	t.Run("GetOutput returns plain text rows of exact length (211) if output has file but not tags",
+	t.Run("GetOutput returns plain text rows of exact length (175) if output has file but not tags",
 		testGetOutputReturnsRowsOfExactLengthForWithFileWithoutTags)
-	t.Run("GetOutput returns plain text rows of exact length (229)",
+	t.Run("GetOutput returns plain text rows of exact length (175)",
 		testGetOutputReturnsRowsOfExactLength)
 	t.Run("GetOutput can split long message into several rows",
 		testGetOutputReturnsSeveralRowsForLongMessages)
@@ -47,15 +46,15 @@ func testGetOutputReturnsRows(t *testing.T) {
 func testGetOutputReturnsRowsOfExactLengthForWithFileWithoutTags(t *testing.T) {
 	assert := assert.New(t)
 	f := Default()
-	b := f.GetOutput(0, short, make(map[string][]string), 0)
+	b := f.GetOutput(0, PaintText(ANSIColorBlue, short), make(map[string][]string), 0)
 	s := string(b)
-	length := utf8.RuneCountInString(s[:len(s)-1])
+	length := PrintableTextLen(s[:len(s)-1])
 
 	assert.Equal(lenWithFileWithoutTags, length, "should be of exact length")
 
 	b = f.GetOutput(0, medium, make(map[string][]string), 0)
 	s = string(b)
-	length = utf8.RuneCountInString(s[:len(s)-1])
+	length = PrintableTextLen(s[:len(s)-1])
 
 	assert.Equal(lenWithFileWithoutTags, length, "should be of exact length")
 
@@ -63,7 +62,7 @@ func testGetOutputReturnsRowsOfExactLengthForWithFileWithoutTags(t *testing.T) {
 	s = string(b)
 
 	for _, s := range strings.Split(s[:len(s)-1], "\n") {
-		length = utf8.RuneCountInString(s)
+		length = PrintableTextLen(s)
 
 		assert.Equal(lenWithFileWithoutTags, length, "should be of exact length")
 	}
@@ -74,15 +73,15 @@ func testGetOutputReturnsRowsOfExactLength(t *testing.T) {
 	f := Default()
 	tags := make(map[string][]string)
 	tags["tag"] = []string{"cool tag"}
-	b := f.GetOutput(0, short, tags, 0)
+	b := f.GetOutput(0, PaintText(ColorFatal, short), tags, 0)
 	s := string(b)
-	length := utf8.RuneCountInString(s[:len(s)-1])
+	length := PrintableTextLen(s[:len(s)-1])
 
 	assert.Equal(lenDefault, length, "should be of exact length")
 
 	b = f.GetOutput(0, medium, tags, 0)
 	s = string(b)
-	length = utf8.RuneCountInString(s[:len(s)-1])
+	length = PrintableTextLen(s[:len(s)-1])
 
 	assert.Equal(lenDefault, length, "should be of exact length")
 
@@ -90,7 +89,7 @@ func testGetOutputReturnsRowsOfExactLength(t *testing.T) {
 	s = string(b)
 
 	for _, s := range strings.Split(s[:len(s)-1], "\n") {
-		length = utf8.RuneCountInString(s)
+		length = PrintableTextLen(s)
 
 		assert.Equal(lenDefault, length, "should be of exact length")
 	}

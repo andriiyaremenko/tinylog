@@ -1,7 +1,6 @@
 package tinylog
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -70,10 +69,9 @@ func testSetLogLevel(t *testing.T) {
 
 func testAddTag(t *testing.T) {
 	assert := assert.New(t)
-	ctx := context.TODO()
 	l, b := getLogger()
 
-	l.AddTag(ctx, "user", "me", "cat")
+	l.AddTag("user", "me", "cat")
 	l.Println(Info, "info")
 
 	result := b.String()
@@ -86,10 +84,9 @@ func testAddTag(t *testing.T) {
 
 func testGetFixedLevel(t *testing.T) {
 	assert := assert.New(t)
-	ctx := context.TODO()
 	l, b := getLogger()
 
-	l.AddTag(ctx, "user", "me", "cat")
+	l.AddTag("user", "me", "cat")
 
 	ll := l.GetFixedLevel(Warn)
 
@@ -106,10 +103,9 @@ func testGetFixedLevel(t *testing.T) {
 
 func testFixedLevelRespectsVerbosity(t *testing.T) {
 	assert := assert.New(t)
-	ctx := context.TODO()
 	l, b := getLogger()
 
-	l.AddTag(ctx, "user", "me", "cat")
+	l.AddTag("user", "me", "cat")
 
 	ll := l.GetFixedLevel(Debug)
 
