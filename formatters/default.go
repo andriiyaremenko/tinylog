@@ -222,7 +222,7 @@ func splitMessageIntoRows(message string, spaceForMessage int) []string {
 
 func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 	parts := make([]string, 0, 1)
-	messageParts := strings.Split(messageRow, ":")
+	messageParts := strings.SplitN(messageRow, ":", 2)
 
 	for i, messagePart := range messageParts {
 		if len(messagePart) == 0 {
@@ -232,7 +232,14 @@ func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 		if i < len(messageParts)-1 {
 			messagePart = messagePart + ":"
 		}
-		if len(messagePart) > spaceForMessage {
+		isTooLong := len(messagePart) > spaceForMessage
+
+		if isTooLong && strings.Contains(messagePart, ":") {
+			parts = append(parts, splitMessageIntoParts(messagePart, spaceForMessage)...)
+			continue
+		}
+
+		if isTooLong {
 			parts = append(parts, breakMessageInLines(messagePart, spaceForMessage)...)
 			continue
 		}
