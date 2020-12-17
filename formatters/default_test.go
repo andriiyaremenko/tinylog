@@ -11,7 +11,7 @@ const (
 	short       string = "hello logger"
 	medium      string = "hello logger, my old friend"
 	withNewLine string = "hello logger\nmy old friend"
-	long        string = "hello logger, my old friend, lorem ipsum: lets break some lines: this must be long enough to make it work: we need a little bit more text here"
+	long        string = "hello logger, my old friend, lorem ipsum:\tlets break some lines:\tthis must be long enough to make it work:\twe need a little bit more text here"
 )
 
 const (
