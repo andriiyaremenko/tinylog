@@ -117,17 +117,19 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 		break
 	}
 
-	message = strings.Trim(message, "\n")
+	for strings.HasSuffix(message, "\n") {
+		message = strings.TrimSuffix(message, "\n")
+	}
 
 	var b []byte
 	if messageLength > spaceForMessage || strings.Contains(message, "\n") {
 		for _, messagePart := range splitMessageIntoRows(message, spaceForMessage) {
 			if strings.HasPrefix(message, "\t") {
-				strings.TrimLeft(messagePart, "\t")
+				strings.TrimPrefix(messagePart, "\t")
 				messagePart = "\t" + messagePart
 			}
 
-			messagePart := strings.Trim(messagePart, "\n")
+			messagePart := strings.TrimSuffix(messagePart, "\n")
 			spaceForMessagePart := PrintableTextLen(messagePart)
 			if level == 0 {
 				messagePart = PaintText(ColorTrace, messagePart)
@@ -233,8 +235,8 @@ func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 		if i < len(messageParts)-1 {
 			messagePart = messagePart + ":"
 		}
-		isTooLong := len(messagePart) > spaceForMessage
 
+		isTooLong := len(messagePart) > spaceForMessage
 		if isTooLong && strings.Contains(messagePart, ":") {
 			parts = append(parts, splitMessageIntoParts(messagePart, spaceForMessage)...)
 			continue

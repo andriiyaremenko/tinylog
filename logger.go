@@ -66,7 +66,7 @@ func (tl *tinyLogger) Printf(level int, format string, v ...interface{}) {
 }
 
 func (tl *tinyLogger) Println(level int, v ...interface{}) {
-	tl.print(level, fmt.Sprintln(v...))
+	tl.print(level, fmt.Sprint(v...))
 }
 
 func (tl *tinyLogger) Fatalf(format string, v ...interface{}) {
@@ -75,7 +75,7 @@ func (tl *tinyLogger) Fatalf(format string, v ...interface{}) {
 }
 
 func (tl *tinyLogger) Fatalln(v ...interface{}) {
-	tl.print(Fatal, fmt.Sprintln(v...))
+	tl.print(Fatal, fmt.Sprint(v...))
 	os.Exit(1)
 }
 
