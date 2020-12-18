@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	tabSize      int = 4
 	totalSpace   int = 175
 	messageSpace int = 50
 )
@@ -45,9 +44,9 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 
 	spaceForLevel := len(levelS) + 1
 	spaceForDate := len(dateString) + 1
-	spaceForFile := PrintableTextLen(foundAtString) + 1
+	spaceForFile := LenPrintableText(foundAtString) + 1
 	spaceForTags := 0
-	messageLength := PrintableTextLen(message)
+	messageLength := LenPrintableText(message)
 
 	if !printFile {
 		fileSection = ""
@@ -74,7 +73,7 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 		tagsSectionBuilder.WriteString(PaintText(color, k))
 		tagsSectionBuilder.WriteByte('=')
 
-		spaceForTags += PrintableTextLen(k) + 1
+		spaceForTags += LenPrintableText(k) + 1
 
 		for j, s := range tags[k] {
 			if j > 0 {
@@ -85,7 +84,7 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 
 			tagsSectionBuilder.WriteString(PaintText(color, s))
 
-			spaceForTags += PrintableTextLen(s)
+			spaceForTags += LenPrintableText(s)
 		}
 	}
 
@@ -122,17 +121,10 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 		message = strings.TrimSuffix(message, "\n")
 	}
 
-	if strings.HasPrefix(message, "\t") {
-		spaceForMessage = spaceForMessage + tabSize
-	}
-
 	var b []byte
 	if messageLength > spaceForMessage || strings.Contains(message, "\n") {
 		for _, messagePart := range splitMessageIntoRows(message, spaceForMessage) {
-			spaceForMessagePart := PrintableTextLen(messagePart)
-			if strings.HasPrefix(messagePart, "\t") {
-				spaceForMessagePart += tabSize*strings.Count(messagePart, "\t") + 1
-			}
+			spaceForMessagePart := LenPrintableText(messagePart)
 
 			if level == 0 {
 				messagePart = PaintText(ColorTrace, messagePart)
@@ -235,18 +227,15 @@ func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 			continue
 		}
 
-		messagePart = strings.TrimLeft(messagePart, " ")
-
 		if strings.HasPrefix(messageRow, "\t") && i > 0 {
-			spaceForMessage = spaceForMessage - tabSize - 1
-			messagePart = "\t" + " " + messagePart
+			messagePart = "\t" + messagePart
 		}
 
 		if i < len(messageParts)-1 {
 			messagePart = messagePart + ":"
 		}
 
-		isTooLong := len(messagePart) > spaceForMessage
+		isTooLong := LenPrintableText(messagePart) > spaceForMessage
 		if isTooLong && strings.Contains(messagePart, ":") {
 			parts = append(parts, splitMessageIntoParts(messagePart, spaceForMessage)...)
 			continue
@@ -264,11 +253,15 @@ func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 }
 
 func breakMessageInLines(messagePart string, spaceForMessage int) []string {
-	messageLength := len(messagePart)
+	messageLength := LenPrintableText(messagePart)
 	nParts := int(math.Ceil(float64(messageLength) / float64(spaceForMessage)))
 	parts := make([]string, 0, 1)
 
 	for i := 0; i < nParts; i++ {
+		if i > 0 {
+			spaceForMessage -= 1
+		}
+
 		start := i * spaceForMessage
 		finish := start + spaceForMessage
 
@@ -280,6 +273,10 @@ func breakMessageInLines(messagePart string, spaceForMessage int) []string {
 
 		if len(nextPart) == 0 {
 			continue
+		}
+
+		if i > 0 {
+			nextPart = " " + nextPart
 		}
 
 		parts = append(parts, nextPart)

@@ -48,13 +48,13 @@ func testGetOutputReturnsRowsOfExactLengthForWithFileWithoutTags(t *testing.T) {
 	f := Default()
 	b := f.GetOutput(0, PaintText(ANSIColorBlue, short), make(map[string][]string), 0)
 	s := string(b)
-	length := PrintableTextLen(s[:len(s)-1])
+	length := LenPrintableText(s[:len(s)-1])
 
 	assert.Equal(lenWithFileWithoutTags, length, "should be of exact length")
 
 	b = f.GetOutput(0, medium, make(map[string][]string), 0)
 	s = string(b)
-	length = PrintableTextLen(s[:len(s)-1])
+	length = LenPrintableText(s[:len(s)-1])
 
 	assert.Equal(lenWithFileWithoutTags, length, "should be of exact length")
 
@@ -62,7 +62,7 @@ func testGetOutputReturnsRowsOfExactLengthForWithFileWithoutTags(t *testing.T) {
 	s = string(b)
 
 	for _, s := range strings.Split(s[:len(s)-1], "\n") {
-		length = PrintableTextLen(s)
+		length = LenPrintableText(s)
 
 		assert.Equal(lenWithFileWithoutTags, length, "should be of exact length")
 	}
@@ -75,13 +75,13 @@ func testGetOutputReturnsRowsOfExactLength(t *testing.T) {
 	tags["tag"] = []string{"cool tag"}
 	b := f.GetOutput(0, PaintText(ColorFatal, short), tags, 0)
 	s := string(b)
-	length := PrintableTextLen(s[:len(s)-1])
+	length := LenPrintableText(s[:len(s)-1])
 
 	assert.Equal(lenDefault, length, "should be of exact length")
 
 	b = f.GetOutput(0, medium, tags, 0)
 	s = string(b)
-	length = PrintableTextLen(s[:len(s)-1])
+	length = LenPrintableText(s[:len(s)-1])
 
 	assert.Equal(lenDefault, length, "should be of exact length")
 
@@ -89,7 +89,7 @@ func testGetOutputReturnsRowsOfExactLength(t *testing.T) {
 	s = string(b)
 
 	for _, s := range strings.Split(s[:len(s)-1], "\n") {
-		length = PrintableTextLen(s)
+		length = LenPrintableText(s)
 
 		assert.Equal(lenDefault, length, "should be of exact length")
 	}

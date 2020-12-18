@@ -3,6 +3,7 @@ package formatters
 import (
 	"regexp"
 	"runtime"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -45,8 +46,32 @@ func PaintBuffer(color Color, text []byte) []byte {
 }
 
 // Returns `utf8.RuneCountInString` of text without ANSI color codes
-func PrintableTextLen(text string) int {
-	return utf8.RuneCountInString(string(ansiiColorMatch.ReplaceAll([]byte(text), []byte(""))))
+func LenPrintableText(text string) int {
+	return utf8.RuneCountInString(string(ansiiColorMatch.ReplaceAll([]byte(text), []byte("")))) +
+		getTabSize(text)
+}
+
+// this should be tested more and not only on my machine
+func getTabSize(text string) int {
+	correction := 0
+	tabCount := strings.Count(text, "\t")
+
+	// somehow tabs at the beginning are larger but only if there is one tab
+	// or at least it appeared to me so
+	if strings.HasPrefix(text, "\t") {
+		correction = 1
+	}
+
+	switch tabCount {
+	case 1:
+		return 4 + correction
+	case 2:
+		// this is special one:
+		// if there is two tabs they appear to be larger than in other cases
+		return 12
+	default:
+		return 4 * tabCount
+	}
 }
 
 func getLevelTextAndColor(level int) (string, Color) {
