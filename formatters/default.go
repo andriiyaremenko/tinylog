@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	tabSize      int = 4
 	totalSpace   int = 175
 	messageSpace int = 50
 )
@@ -121,16 +122,16 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 		message = strings.TrimSuffix(message, "\n")
 	}
 
+	if strings.Contains(message, "\t") {
+		spaceForMessage = spaceForMessage - strings.Count(message, "\t")*tabSize
+		message = strings.ReplaceAll(message, "\t", strings.Repeat(" ", tabSize))
+	}
+
 	var b []byte
 	if messageLength > spaceForMessage || strings.Contains(message, "\n") {
 		for _, messagePart := range splitMessageIntoRows(message, spaceForMessage) {
-			if strings.HasPrefix(message, "\t") {
-				strings.TrimPrefix(messagePart, "\t")
-				messagePart = "\t" + messagePart
-			}
-
-			messagePart := strings.TrimSuffix(messagePart, "\n")
 			spaceForMessagePart := PrintableTextLen(messagePart)
+
 			if level == 0 {
 				messagePart = PaintText(ColorTrace, messagePart)
 			}
@@ -208,6 +209,7 @@ func splitMessageIntoRows(message string, spaceForMessage int) []string {
 	messageRows := strings.Split(message, "\n")
 
 	for _, messageRow := range messageRows {
+		messageRow = strings.ReplaceAll(messageRow, "\n", "")
 		if len(messageRow) == 0 {
 			continue
 		}
