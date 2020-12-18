@@ -131,7 +131,7 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 		for _, messagePart := range splitMessageIntoRows(message, spaceForMessage) {
 			spaceForMessagePart := PrintableTextLen(messagePart)
 			if strings.HasPrefix(messagePart, "\t") {
-				spaceForMessagePart += tabSize * strings.Count(messagePart, "\t")
+				spaceForMessagePart += tabSize*strings.Count(messagePart, "\t") + 1
 			}
 
 			if level == 0 {
@@ -233,6 +233,13 @@ func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 	for i, messagePart := range messageParts {
 		if len(messagePart) == 0 {
 			continue
+		}
+
+		messagePart = strings.TrimLeft(messagePart, " ")
+
+		if strings.HasPrefix(messageRow, "\t") && i > 0 {
+			spaceForMessage = spaceForMessage - tabSize - 1
+			messagePart = "\t" + " " + messagePart
 		}
 
 		if i < len(messageParts)-1 {
