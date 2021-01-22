@@ -207,8 +207,10 @@ func splitMessageIntoRows(message string, spaceForMessage int) []string {
 			continue
 		}
 
-		if len(messageRow) > spaceForMessage {
-			parts = append(parts, splitMessageIntoParts(messageRow, spaceForMessage)...)
+		if LenPrintableText(messageRow) > spaceForMessage {
+			parts = append(parts,
+				splitMessageBySignsFunc(";",
+					splitMessageBySignsFunc(",", splitMessageByTabs))(messageRow, spaceForMessage)...)
 			continue
 		}
 
@@ -218,9 +220,69 @@ func splitMessageIntoRows(message string, spaceForMessage int) []string {
 	return parts
 }
 
+func splitMessageBySignsFunc(sign string, nextSplitFunc func(string, int) []string) func(string, int) []string {
+	return func(message string, spaceForMessage int) []string {
+		parts := make([]string, 0, 1)
+		messageRows := strings.Split(message, sign)
+
+		for i, messageRow := range messageRows {
+			if len(messageRow) == 0 || messageRow == "\t" {
+				continue
+			}
+
+			if strings.HasPrefix(message, sign) && i == 0 {
+				messageRow = sign + messageRow
+			}
+
+			if len(messageRows) > 1 && i < len(messageRows)-1 {
+				messageRow = messageRow + sign
+			}
+
+			if LenPrintableText(messageRow) > spaceForMessage {
+				parts = append(parts, nextSplitFunc(messageRow, spaceForMessage)...)
+				continue
+			}
+
+			parts = append(parts, messageRow)
+		}
+
+		return parts
+	}
+}
+
+func splitMessageByTabs(messageRow string, spaceForMessage int) []string {
+	parts := make([]string, 0, 1)
+	messageSections := strings.SplitN(messageRow, "\t", 2)
+
+	for i, messageSection := range messageSections {
+		if len(messageSection) == 0 {
+			continue
+		}
+
+		if strings.HasPrefix(messageRow, "\t") && i == 0 || i > 0 {
+			messageRow = "\t" + messageRow
+		}
+
+		isTooLong := LenPrintableText(messageSection) > spaceForMessage
+		if isTooLong && strings.Contains(messageSection[len("\t"):], "\t") {
+			parts = append(parts, splitMessageByTabs(messageSection, spaceForMessage)...)
+			continue
+		}
+
+		if isTooLong {
+			parts = append(parts, splitMessageIntoParts(messageSection, spaceForMessage)...)
+			continue
+		}
+
+		parts = append(parts, messageSection)
+	}
+
+	return parts
+}
+
 func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 	parts := make([]string, 0, 1)
-	messageParts := strings.SplitN(messageRow, ":", 2)
+	messageParts := strings.SplitN(messageRow, ": ", 2)
 
 	for i, messagePart := range messageParts {
 		if len(messagePart) == 0 {
@@ -235,8 +297,12 @@ func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 			messagePart = messagePart + ":"
 		}
 
+		if i > 0 {
+			messagePart = " " + messagePart
+		}
+
 		isTooLong := LenPrintableText(messagePart) > spaceForMessage
-		if isTooLong && strings.Contains(messagePart, ":") {
+		if isTooLong && strings.Contains(messagePart, ": ") {
 			parts = append(parts, splitMessageIntoParts(messagePart, spaceForMessage)...)
 			continue
 		}
