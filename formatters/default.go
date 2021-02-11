@@ -1,10 +1,12 @@
 package formatters
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"sort"
 	"strings"
+	"text/tabwriter"
 	"time"
 )
 
@@ -32,6 +34,18 @@ type defaultFormatter struct {
 func (df *defaultFormatter) GetOutput(level int, message string, tags map[string][]string, calldepth int) []byte {
 	now := time.Now() // get this early.
 	printFile := level <= 1 || level == 5
+
+	if level == 0 || level == 5 {
+		message = DecolorizeString(message)
+	}
+
+	buf := new(bytes.Buffer)
+	w := tabwriter.NewWriter(buf, 0, 2, 2, ' ', 0)
+
+	fmt.Fprint(w, message)
+	w.Flush()
+
+	message = buf.String()
 
 	levelS, color := getLevelTextAndColor(level)
 	file, line := getFileAndLine(calldepth + 1)
@@ -203,14 +217,14 @@ func splitMessageIntoRows(message string, spaceForMessage int) []string {
 	messageRows := strings.Split(message, "\n")
 
 	for _, messageRow := range messageRows {
-		if len(messageRow) == 0 || messageRow == "\t" {
+		if len(messageRow) == 0 {
 			continue
 		}
 
 		if LenPrintableText(messageRow) > spaceForMessage {
 			parts = append(parts,
 				splitMessageBySignsFunc(";",
-					splitMessageBySignsFunc(",", splitMessageByTabs))(messageRow, spaceForMessage)...)
+					splitMessageBySignsFunc(",", splitMessageIntoParts))(messageRow, spaceForMessage)...)
 			continue
 		}
 
@@ -226,7 +240,7 @@ func splitMessageBySignsFunc(sign string, nextSplitFunc func(string, int) []stri
 		messageRows := strings.Split(message, sign)
 
 		for i, messageRow := range messageRows {
-			if len(messageRow) == 0 || messageRow == "\t" {
+			if len(messageRow) == 0 {
 				continue
 			}
 
@@ -250,36 +264,6 @@ func splitMessageBySignsFunc(sign string, nextSplitFunc func(string, int) []stri
 	}
 }
 
-func splitMessageByTabs(messageRow string, spaceForMessage int) []string {
-	parts := make([]string, 0, 1)
-	messageSections := strings.SplitN(messageRow, "\t", 2)
-
-	for i, messageSection := range messageSections {
-		if len(messageSection) == 0 {
-			continue
-		}
-
-		if strings.HasPrefix(messageRow, "\t") && i == 0 || i > 0 {
-			messageRow = "\t" + messageRow
-		}
-
-		isTooLong := LenPrintableText(messageSection) > spaceForMessage
-		if isTooLong && strings.Contains(messageSection[len("\t"):], "\t") {
-			parts = append(parts, splitMessageByTabs(messageSection, spaceForMessage)...)
-			continue
-		}
-
-		if isTooLong {
-			parts = append(parts, splitMessageIntoParts(messageSection, spaceForMessage)...)
-			continue
-		}
-
-		parts = append(parts, messageSection)
-	}
-
-	return parts
-}
-
 func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 	parts := make([]string, 0, 1)
 	messageParts := strings.SplitN(messageRow, ": ", 2)
@@ -287,10 +271,6 @@ func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 	for i, messagePart := range messageParts {
 		if len(messagePart) == 0 {
 			continue
-		}
-
-		if strings.HasPrefix(messageRow, "\t") && i > 0 {
-			messagePart = "\t" + messagePart
 		}
 
 		if i < len(messageParts)-1 {
@@ -319,7 +299,7 @@ func splitMessageIntoParts(messageRow string, spaceForMessage int) []string {
 }
 
 func breakMessageInLines(messagePart string, spaceForMessage int) []string {
-	messageLength := LenPrintableText(messagePart)
+	messageLength := len(messagePart)
 	nParts := int(math.Ceil(float64(messageLength) / float64(spaceForMessage)))
 	parts := make([]string, 0, 1)
 
