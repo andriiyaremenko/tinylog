@@ -16,6 +16,7 @@ func (f jsonFormatter) GetOutput(level int, message string, tags map[string][]st
 	now := time.Now()
 	levelS, _ := getLevelTextAndColor(level)
 	file, line := getFileAndLine(calldepth + 1)
+	message = DecolorizeString(message)
 
 	m := Log{
 		LevelCode: level,
