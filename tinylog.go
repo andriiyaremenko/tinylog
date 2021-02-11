@@ -1,6 +1,10 @@
 package tinylog
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"regexp"
+)
 
 const (
 	// Most verbose level
@@ -20,6 +24,46 @@ const (
 	// Is supposed to contain file and row number of place logging function was called
 	Fatal
 )
+
+var (
+	regexpTrace = regexp.MustCompile("(?i)trace")
+	regexpDebug = regexp.MustCompile("(?i)debug")
+	regexpInfo  = regexp.MustCompile("(?i)info")
+	regexpWarn  = regexp.MustCompile("(?i)warn")
+	regexpError = regexp.MustCompile("(?i)error")
+	regexpFatal = regexp.MustCompile("(?i)fatal")
+)
+
+// parses string to LogLevel int
+// returns int if level is recognized or error if not
+func ParseLogLevel(level string) (int, error) {
+	switch {
+	case regexpTrace.MatchString(level):
+		return Trace, nil
+	case regexpDebug.MatchString(level):
+		return Debug, nil
+	case regexpInfo.MatchString(level):
+		return Info, nil
+	case regexpWarn.MatchString(level):
+		return Warn, nil
+	case regexpError.MatchString(level):
+		return Error, nil
+	case regexpFatal.MatchString(level):
+		return Fatal, nil
+	default:
+		return 0, fmt.Errorf("unrecognized log level: %s", level)
+	}
+}
+
+// parses string to LogLevel int
+func MustParseLogLevel(level string) int {
+	l, err := ParseLogLevel(level)
+	if err != nil {
+		panic(err)
+	}
+
+	return l
+}
 
 type LogLevelSetter interface {
 	// Sets verbosity level
