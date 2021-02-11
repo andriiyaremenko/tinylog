@@ -304,12 +304,13 @@ func breakMessageInLines(messagePart string, spaceForMessage int) []string {
 	parts := make([]string, 0, 1)
 
 	for i := 0; i < nParts; i++ {
+		startShift := spaceForMessage
 		if i > 0 {
-			spaceForMessage -= 1
+			startShift -= 1
 		}
 
-		start := i * spaceForMessage
-		finish := start + spaceForMessage
+		start := i * startShift
+		finish := start + startShift
 
 		if finish > messageLength {
 			finish = messageLength
