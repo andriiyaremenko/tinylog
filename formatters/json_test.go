@@ -17,7 +17,7 @@ func testJSONFormatterOutput(t *testing.T) {
 
 	tags := make(map[string][]string)
 	tags["tag"] = []string{"cool tag"}
-	now := time.Now().Unix()
+	now := time.Now().Round(time.Millisecond)
 	b := JSONFormatter.GetOutput(2, "test json", tags, 0)
 	m := new(Log)
 

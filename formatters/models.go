@@ -2,6 +2,7 @@ package formatters
 
 import (
 	_ "encoding/json"
+	"time"
 )
 
 // Log model returned by JSONFormatter.
@@ -11,5 +12,5 @@ type Log struct {
 	Location  string              `json:"location"`
 	Message   string              `json:"message"`
 	Tags      map[string][]string `json:"tags"`
-	DateUnix  int64               `json:"dateUnix"`
+	DateUnix  time.Time           `json:"date"`
 }

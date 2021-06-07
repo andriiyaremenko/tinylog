@@ -13,7 +13,7 @@ const JSONFormatter jsonFormatter = "JSONFormatter"
 type jsonFormatter string
 
 func (f jsonFormatter) GetOutput(level int, message string, tags map[string][]string, calldepth int) []byte {
-	now := time.Now()
+	now := time.Now().Round(time.Millisecond)
 	levelS, _ := getLevelTextAndColor(level)
 	file, line := getFileAndLine(calldepth + 1)
 	message = DecolorizeString(message)
@@ -23,7 +23,7 @@ func (f jsonFormatter) GetOutput(level int, message string, tags map[string][]st
 		Level:     strings.TrimLeft(levelS, " "),
 		Location:  fmt.Sprintf("%v:%d", file, line),
 		Message:   message,
-		DateUnix:  now.Unix(),
+		DateUnix:  now,
 		Tags:      tags}
 
 	b, err := json.Marshal(m)
