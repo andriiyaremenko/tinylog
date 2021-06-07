@@ -2,26 +2,38 @@ package tinylog
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"sync"
 
 	"github.com/andriiyaremenko/tinylog/formatters"
 )
 
-// Returns new instance of `Logger` based on `out` and `formatter`
-func NewLogger(out io.Writer, formatter formatters.LogFormatter) Logger {
-	return &tinyLogger{
-		out:       out,
-		formatter: formatter,
-		logLevel:  Info,
-		tags:      make(map[string][]string),
+// Returns new instance of Logger based on out and formatter.
+func NewLogger(destinations ...Destination) Logger {
+	if len(destinations) == 0 {
+		panic("no destination was provided for Logger")
 	}
+
+	validated := make([]*destination, 0, 1)
+
+	check := make(map[string]struct{})
+	for _, destFunc := range destinations {
+		dest := destFunc()
+		if _, ok := check[dest.ID()]; ok {
+			panic(fmt.Sprintf("destination %s was provided more than once", dest.ID()))
+		}
+
+		validated = append(validated, dest)
+	}
+
+	return &tinyLogger{
+		tags:         make(map[string][]string),
+		destinations: validated}
 }
 
-// Returns new instance of `Logger` based on `os.Stderr` as `out` and `formatters.Default()` as `formatter`
+// Returns new instance of Logger with DefaultDestination.
 func NewDefaultLogger() Logger {
-	return NewLogger(os.Stderr, formatters.Default())
+	return NewLogger(DefaultDestination)
 }
 
 type fixedLevelLogger struct {
@@ -38,16 +50,28 @@ func (fll *fixedLevelLogger) Println(v ...interface{}) {
 }
 
 type tinyLogger struct {
-	mu        sync.RWMutex
-	out       io.Writer
-	formatter formatters.LogFormatter
-	logLevel  int
-	tags      map[string][]string
+	mu sync.RWMutex
+
+	tags         map[string][]string
+	destinations []*destination
 }
 
-func (tl *tinyLogger) SetLogLevel(level int) {
+func (tl *tinyLogger) SetLogLevel(level int, destinations ...Destination) {
+	all := len(destinations) == 0
+
+	ids := make(map[string]struct{})
+	for _, dest := range destinations {
+		ids[dest().ID()] = struct{}{}
+	}
+
 	tl.mu.Lock()
-	tl.logLevel = level
+
+	for _, dest := range tl.destinations {
+		if _, ok := ids[dest.ID()]; ok || all {
+			dest.level = level
+		}
+	}
+
 	tl.mu.Unlock()
 }
 
@@ -62,41 +86,39 @@ func (tl *tinyLogger) AddTag(key string, value ...string) {
 }
 
 func (tl *tinyLogger) Printf(level int, format string, v ...interface{}) {
-	tl.print(level, fmt.Sprintf(format, v...))
+	tl.output(level, fmt.Sprintf(format, v...), 1)
 }
 
 func (tl *tinyLogger) Println(level int, v ...interface{}) {
-	tl.print(level, fmt.Sprint(v...))
+	tl.output(level, fmt.Sprint(v...), 1)
 }
 
 func (tl *tinyLogger) Fatalf(format string, v ...interface{}) {
-	tl.print(Fatal, fmt.Sprintf(format, v...))
+	tl.output(Fatal, fmt.Sprintf(format, v...), 1)
 	os.Exit(1)
 }
 
 func (tl *tinyLogger) Fatalln(v ...interface{}) {
-	tl.print(Fatal, fmt.Sprint(v...))
+	tl.output(Fatal, fmt.Sprint(v...), 1)
 	os.Exit(1)
-}
-
-func (tl *tinyLogger) print(level int, message string) {
-	tl.mu.RLock()
-
-	if tl.logLevel > level {
-		tl.mu.RUnlock()
-		return
-	}
-
-	tl.mu.RUnlock()
-	tl.output(level, message, 2)
 }
 
 func (tl *tinyLogger) output(level int, message string, calldepth int) {
 	tl.mu.RLock()
-	bytes := tl.formatter.GetOutput(level, message, tl.tags, calldepth+1)
-	tl.mu.RUnlock()
+	for _, dest := range tl.destinations {
+		if dest.level > level {
+			continue
+		}
 
-	if _, err := tl.out.Write(bytes); err != nil {
-		fmt.Printf(formatters.PaintText(formatters.ANSIColorRed, fmt.Sprintf("failed to write log to io.Writer: %s", err)))
+		bytes := dest.formatter.GetOutput(level, message, tl.tags, calldepth+1)
+
+		if _, err := dest.out.Write(bytes); err != nil {
+			fmt.Printf(
+				formatters.PaintText(
+					formatters.ANSIColorRed,
+					fmt.Sprintf("failed to write log to destination %s: %s",
+						dest.ID(), err)))
+		}
 	}
+	tl.mu.RUnlock()
 }

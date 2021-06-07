@@ -1,14 +1,17 @@
 package tinylog
 
 import (
+	"bytes"
 	"testing"
 
+	"github.com/andriiyaremenko/tinylog/formatters"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLogger(t *testing.T) {
 	t.Run("Default log level is Info", testDefaultLogLevelIsInfo)
 	t.Run("SetLogLevel changes verbosity level", testSetLogLevel)
+	t.Run("SetLogLevel changes verbosity level for particular Destination", testSetLogLevelForDestination)
 	t.Run("AddTag adds tag to output", testAddTag)
 	t.Run("GetFixedLevel returns FixedLevelLogger of correct level", testGetFixedLevel)
 	t.Run("FixedLevelLogger respects verbosity level", testFixedLevelRespectsVerbosity)
@@ -16,7 +19,7 @@ func TestLogger(t *testing.T) {
 
 func testDefaultLogLevelIsInfo(t *testing.T) {
 	assert := assert.New(t)
-	l, b := getLogger()
+	l, _, b := getLogger()
 
 	l.Println(Trace, "trace")
 	l.Println(Debug, "debug")
@@ -30,9 +33,9 @@ func testDefaultLogLevelIsInfo(t *testing.T) {
 
 func testSetLogLevel(t *testing.T) {
 	assert := assert.New(t)
-	l, b := getLogger()
+	l, destinations, b := getLogger()
 
-	l.SetLogLevel(Debug)
+	l.SetLogLevel(Debug, destinations...)
 	l.Println(Trace, "trace")
 	l.Println(Debug, "debug")
 
@@ -40,7 +43,7 @@ func testSetLogLevel(t *testing.T) {
 	assert.Contains(result, "debug", "SetLogLevel(Debug): log level should be Debug")
 	assert.NotContains(result, "trace", "SetLogLevel(Debug): log level should be Debug")
 
-	l, b = getLogger()
+	l, _, b = getLogger()
 
 	l.SetLogLevel(Trace)
 	l.Println(Trace, "trace")
@@ -49,7 +52,7 @@ func testSetLogLevel(t *testing.T) {
 
 	assert.Contains(result, "trace", "SetLogLevel(Trace): log level should be Trace")
 
-	l, b = getLogger()
+	l, _, b = getLogger()
 
 	l.SetLogLevel(Error)
 	l.Println(Trace, "trace")
@@ -67,9 +70,30 @@ func testSetLogLevel(t *testing.T) {
 	assert.NotContains(result, "warn", "SetLogLevel(Error): log level should be Error")
 }
 
+func testSetLogLevelForDestination(t *testing.T) {
+	assert := assert.New(t)
+	b1 := new(bytes.Buffer)
+	destination1 := DestinationFunc(b1, formatters.Default(), Info)
+	b2 := new(bytes.Buffer)
+	destination2 := DestinationFunc(b2, formatters.Default(), Info)
+	l := NewLogger(destination1, destination2)
+
+	l.SetLogLevel(Debug, destination1)
+	l.Println(Trace, "trace")
+	l.Println(Debug, "debug")
+
+	result := b1.String()
+	assert.Contains(result, "debug", "SetLogLevel(Debug) for destination1: destination1 log level should be Debug")
+	assert.NotContains(result, "trace", "SetLogLevel(Debug) for destination1: destination1 log level should be Debug")
+
+	result = b2.String()
+	assert.NotContains(result, "debug", "SetLogLevel(Debug) for destination1: destination2 log level should be Info")
+	assert.NotContains(result, "trace", "SetLogLevel(Debug) for destination1: destination2 log level should be Info")
+}
+
 func testAddTag(t *testing.T) {
 	assert := assert.New(t)
-	l, b := getLogger()
+	l, _, b := getLogger()
 
 	l.AddTag("user", "me", "cat")
 	l.Println(Info, "info")
@@ -84,7 +108,7 @@ func testAddTag(t *testing.T) {
 
 func testGetFixedLevel(t *testing.T) {
 	assert := assert.New(t)
-	l, b := getLogger()
+	l, _, b := getLogger()
 
 	l.AddTag("user", "me", "cat")
 
@@ -103,7 +127,7 @@ func testGetFixedLevel(t *testing.T) {
 
 func testFixedLevelRespectsVerbosity(t *testing.T) {
 	assert := assert.New(t)
-	l, b := getLogger()
+	l, _, b := getLogger()
 
 	l.AddTag("user", "me", "cat")
 

@@ -30,12 +30,12 @@ const (
 
 var ansiiColorMatch = regexp.MustCompile("\u001B\\[[;\\d]*m")
 
-// Returns text prepended by ANSI color code and appended by ANSI color reset code
+// Returns text prepended by ANSI color code and appended by ANSI color reset code.
 func PaintText(color Color, text string) string {
 	return string(color) + text + string(ANSIReset)
 }
 
-// Returns `[]byte` prepended by ANSI color code and appended by ANSI color reset code
+// Returns []byte prepended by ANSI color code and appended by ANSI color reset code.
 func PaintBuffer(color Color, text []byte) []byte {
 	var result []byte
 	result = append(result, []byte(color)...)
@@ -44,17 +44,17 @@ func PaintBuffer(color Color, text []byte) []byte {
 	return result
 }
 
-// Returns text without color
+// Returns text without color.
 func DecolorizeString(text string) string {
 	return ansiiColorMatch.ReplaceAllString(text, "")
 }
 
-// Returns text without color
+// Returns text without color.
 func DecolorizeBuffer(text []byte) []byte {
 	return ansiiColorMatch.ReplaceAll(text, []byte(""))
 }
 
-// Returns `utf8.RuneCountInString` of text without ANSI color codes
+// Returns utf8.RuneCountInString of text without ANSI color codes.
 func LenPrintableText(text string) int {
 	return utf8.RuneCountInString(string(ansiiColorMatch.ReplaceAll([]byte(text), []byte(""))))
 }

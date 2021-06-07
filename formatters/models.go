@@ -4,7 +4,7 @@ import (
 	_ "encoding/json"
 )
 
-// Log model returned by `JSONFormatter`
+// Log model returned by JSONFormatter.
 type Log struct {
 	LevelCode int                 `json:"levelCode"`
 	Level     string              `json:"level"`

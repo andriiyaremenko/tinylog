@@ -10,17 +10,17 @@ import (
 
 func getLoggerFactory() (LoggerFactory, *bytes.Buffer) {
 	b := new(bytes.Buffer)
-	lf := NewLoggerFactory(b, formatters.Default())
+	lf := NewLoggerFactory(DestinationFunc(b, formatters.Default(), Info))
 
 	return lf, b
 }
 
-func getLogger() (Logger, *bytes.Buffer) {
+func getLogger() (Logger, []Destination, *bytes.Buffer) {
 	ctx := context.TODO()
 	lf, b := getLoggerFactory()
-	l := lf.GetLogger(ctx)
+	l := lf.GetLogger(ctx, AllDestinations(lf)...)
 
-	return l, b
+	return l, AllDestinations(lf), b
 }
 
 type concurrentWriter struct {

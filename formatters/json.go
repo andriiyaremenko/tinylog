@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// `Formatter` that returns log message in form of JSON
+// Formatter that returns log message in form of JSON.
 const JSONFormatter jsonFormatter = "JSONFormatter"
 
 type jsonFormatter string
