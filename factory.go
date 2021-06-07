@@ -26,7 +26,7 @@ func NewLoggerFactory(destinations ...Destination) LoggerFactory {
 }
 
 // Returns new instance of LoggerFactory with DefaultDestination.
-func NewDefaultLoggerFactory() LoggerFactory {
+func DefaultLoggerFactory() LoggerFactory {
 	return NewLoggerFactory(DefaultDestination)
 }
 

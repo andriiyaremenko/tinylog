@@ -32,7 +32,7 @@ func NewLogger(destinations ...Destination) Logger {
 }
 
 // Returns new instance of Logger with DefaultDestination.
-func NewDefaultLogger() Logger {
+func DefaultLogger() Logger {
 	return NewLogger(DefaultDestination)
 }
 
