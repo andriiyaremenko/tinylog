@@ -193,6 +193,7 @@ func getFinalOutput(levelSection string, levelLength int, dateSection string, da
 
 	switch {
 	case tagsAndFileAreOnSeparateLine:
+		b = append(b, padSpaces(totalLength-levelLength-dateLength-messageLength)...)
 		b = append(b, '\n')
 		b = append(b, []byte(levelSection)...)
 		b = append(b, []byte(dateSection)...)

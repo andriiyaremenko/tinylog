@@ -27,10 +27,11 @@ func TestDefaultLoggerFormatter(t *testing.T) {
 		testGetOutputReturnsRowsOfExactLength)
 	t.Run("GetOutput can split long message into several rows",
 		testGetOutputReturnsSeveralRowsForLongMessages)
-	t.Run("GetOutput will split message into several rows if there is \n in it",
+	t.Run(`GetOutput will split message into several rows if there is \n in it`,
 		testGetOutputReturnsSeveralRowsMessagesWithNewLines)
 	t.Run("GetOutput would show file location for TRACE, DEBUG and FATAL",
 		testGetOutputShowsFileForTraceDebugFatalOnly)
+	t.Run("Test negative pad count case 1", testNegativePadCountCase_1)
 }
 
 func testGetOutputReturnsRows(t *testing.T) {
@@ -130,5 +131,24 @@ func testGetOutputShowsFileForTraceDebugFatalOnly(t *testing.T) {
 
 		// default_test.go - name of this file, where it was called
 		assert.NotContainsf(string(b), "default_test.go", "should not print file location for %d", i)
+	}
+}
+
+func testNegativePadCountCase_1(t *testing.T) {
+	message := "http://www.thessaliaradio.online/ - \x1b[32mattempt #1\x1b[0m \x1b[34m600ms\x1b[0m"
+	assert := assert.New(t)
+	f := Default()
+	b := f.GetOutput(2, message, map[string][]string{
+		"link": []string{
+			`{"login":"test","password":"test123","cms":"","method":"","address":"http://perdetata.bg/","dateAdded":"2021-06-27T17:19:19.806708+03:00"}`,
+		},
+	}, 0)
+	s := string(b)
+
+	for _, s := range strings.Split(s[:len(s)-1], "\n") {
+		println(s)
+		length := LenPrintableText(s)
+
+		assert.Equal(lenDefault, length, "should be of exact length")
 	}
 }
