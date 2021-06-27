@@ -103,6 +103,16 @@ func (df *defaultFormatter) GetOutput(level int, message string, tags map[string
 	}
 
 	tagsSection := " " + tagsSectionBuilder.String()
+
+	if len(tagsSection) > messageSpace {
+		panic(
+			fmt.Sprintf(
+				"tag %q is too long - consider moving part of into message or using other formatter",
+				strings.Trim(DecolorizeString(tagsSection), " "),
+			),
+		)
+	}
+
 	spaceForTags++
 
 	spaceForEverythingElse := spaceForLevel + spaceForDate + spaceForFile + spaceForTags
