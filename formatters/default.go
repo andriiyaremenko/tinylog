@@ -185,7 +185,35 @@ func getFinalOutput(levelSection string, levelLength int, dateSection string, da
 	b = append(b, []byte(message)...)
 	padSpaces := func(count int) []byte {
 		if count < 0 {
-			panic(fmt.Sprintf("message %q caused negative (%d) pad spaces count", message, count))
+			switch {
+			case tagsLength > 0 && fileLength > 0:
+				panic(
+					fmt.Sprintf("message %q with tags %q and file %q caused negative (%d) pad spaces count",
+						message,
+						tagsSection,
+						fileSection,
+						count,
+					),
+				)
+			case tagsLength > 0:
+				panic(
+					fmt.Sprintf("message %q with tags %q caused negative (%d) pad spaces count",
+						message,
+						tagsSection,
+						count,
+					),
+				)
+			case fileLength > 0:
+				panic(
+					fmt.Sprintf("message %q with file %q caused negative (%d) pad spaces count",
+						message,
+						fileSection,
+						count,
+					),
+				)
+			default:
+				panic(fmt.Sprintf("message %q caused negative (%d) pad spaces count", message, count))
+			}
 		}
 
 		return []byte(strings.Repeat(" ", count))
