@@ -184,6 +184,10 @@ func getFinalOutput(levelSection string, levelLength int, dateSection string, da
 	b = append(b, []byte(dateSection)...)
 	b = append(b, []byte(message)...)
 	padSpaces := func(count int) []byte {
+		if count < 0 {
+			panic(fmt.Sprintf("message %q caused negative (%d) pad spaces count", message, count))
+		}
+
 		return []byte(strings.Repeat(" ", count))
 	}
 
