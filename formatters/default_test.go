@@ -146,7 +146,6 @@ func testNegativePadCountCase_1(t *testing.T) {
 	s := string(b)
 
 	for _, s := range strings.Split(s[:len(s)-1], "\n") {
-		println(s)
 		length := LenPrintableText(s)
 
 		assert.Equal(lenDefault, length, "should be of exact length")

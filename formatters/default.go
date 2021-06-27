@@ -188,26 +188,26 @@ func getFinalOutput(levelSection string, levelLength int, dateSection string, da
 			switch {
 			case tagsLength > 0 && fileLength > 0:
 				panic(
-					fmt.Sprintf("message %q with tags %q and file %q caused negative (%d) pad spaces count",
+					fmt.Sprintf("message %q\n\twith tags %q\n\tand file %q\n\tcaused negative (%d) pad spaces count",
 						message,
-						tagsSection,
-						fileSection,
+						strings.Trim(DecolorizeString(tagsSection), " "),
+						strings.Trim(DecolorizeString(fileSection), " "),
 						count,
 					),
 				)
 			case tagsLength > 0:
 				panic(
-					fmt.Sprintf("message %q with tags %q caused negative (%d) pad spaces count",
+					fmt.Sprintf("message %q\n\twith tags %q\n\tcaused negative (%d) pad spaces count",
 						message,
-						tagsSection,
+						strings.Trim(DecolorizeString(tagsSection), " "),
 						count,
 					),
 				)
 			case fileLength > 0:
 				panic(
-					fmt.Sprintf("message %q with file %q caused negative (%d) pad spaces count",
+					fmt.Sprintf("message %q with file %q\n\tcaused negative (%d) pad spaces count",
 						message,
-						fileSection,
+						strings.Trim(DecolorizeString(fileSection), " "),
 						count,
 					),
 				)
